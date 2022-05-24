@@ -25,12 +25,12 @@ modded class SCR_CharacterCommandHandlerComponent : CharacterCommandHandlerCompo
 			{
 				
 				
-				Print("someone died and we're going in");
+				Print("someone died and we're going in!");
 				//StartCommand_Fall(die);		//this doesn't seem needed, no idea where it's starting from then... Maybe default?
 				
 				SetSimulationDisabled(false);
 
-
+				
 				
 				//pretty sure these are broken for now. So.... what now?
 				//m_CharacterAnimComp.SetCurrentCommand(m_ScriptedCommandTest); // it doesn't wanna work goddamn it

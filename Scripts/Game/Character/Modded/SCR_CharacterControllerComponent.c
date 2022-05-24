@@ -2,7 +2,7 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 	
 	//protected ref PAO_SCTest m_testImpulse;
 
-	
+	PhysicsRagdoll currentRagdoll;
 	
 	
 	
@@ -58,51 +58,28 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 			// Get original ragdoll and destroy it
 			PhysicsRagdoll.GetRagdoll(GetCharacter()).Destroy(1);
 			
-			// Recreate it
-			PhysicsRagdoll.CreateRagdoll(GetCharacter(), "{5DD1A0EBAD2116CB}Prefabs/Characters/Core/character_modded.ragdoll",1, EPhysicsLayerDefs.Ragdoll);
-			PhysicsRagdoll current_ragdoll = PhysicsRagdoll.GetRagdoll(GetCharacter());
-			Physics test_phys = current_ragdoll.GetBoneRigidBody(0);
-			
-			test_phys.EnableGravity(true);
-			test_phys.SetMass(1);		//just to be sure, 5 feels strange
-			test_phys.SetDamping(0.001,0.0001);
-			//test_phys.SetSleepingTreshold(0.000000001, 0.000000001);		//default 1 
-			test_phys.SetSleepingTreshold(1,1);		//default 1, doesn't seem to work?
+			// Recreate in
+			currentRagdoll = RegenPhysicsRagdoll();
 
-			
+
 			
 			// Get Last Hit
 			array<vector> lastHitArray = damageComponent.GetLastHit();
-			
-			
-			
-			Print(test_phys.GetVelocity());
-			
-			float x = Math.RandomFloatInclusive(-1.5, 0.0);
-			float y = Math.RandomFloatInclusive(-1.5, 0.0);
-			float z = Math.RandomFloatInclusive(-1.5, 0.0);
+			float x = Math.RandomFloatInclusive(-1.0, 1.0);
+			float y = Math.RandomFloatInclusive(-0.5, -0.0);
+			float z = Math.RandomFloatInclusive(-1.0, 1.0);
 			
 			
 			vector hitVector = {x,y,z};
+			//vector hitVector = {0, 100, 0};
 			//vector hitVector = {Math.RandomFloatInclusive(-1.0, 0.0), -1.0, Math.RandomFloatIncluse(-1.0, 0.0)};
+
 			
-			
-			
-			
-			
-			test_phys.SetVelocity(hitVector);
-			Print(test_phys.GetVelocity());
-			Print("_____________________________");
-			
-			//test_phys.ApplyImpulse("0 -10 0");
-			/// we need to calculate the direction of the hit before doing anything else
-			//test_phys.ApplyForceAt(lastHitArray[0], lastHitArray[1]);		//really dumb test
-			current_ragdoll.Enable();
-			
-			
-			
-			
+			currentRagdoll.GetBoneRigidBody(0).ApplyImpulse(hitVector);		//impact or velocity?
+			Print(currentRagdoll.GetBoneRigidBody(0).GetVelocity());
 			test_CC.Ragdoll();
+			
+			GetGame().GetCallqueue().CallLater(PushRagdollAround, 10, true); // in milliseconds
 			
 
 			
@@ -142,6 +119,62 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 		
 	}
 		
+
+	 
+	void PushRagdollAround(){
 		
+		
+		//todo make a time limit 
+
+		if(currentRagdoll.GetNumBones() > 0){
+			
+
+			//vector hitVector = {0.0 ,-0.8 , 0.0};
+			//currentRagdoll.GetBoneRigidBody(0).ApplyImpulse(hitVector);
+			
+			float x = Math.RandomFloatInclusive(-0.0001, 0.0001);
+			float z = Math.RandomFloatInclusive(-0.0001, 0.0001);
+
+			//vector feetPos = {-0.11, 0.26, 0.29};
+			vector hitVector = {x, -0.001 , z};		//z makes them spin 
+
+			
+			//IEntitySource entitySource = SCR_BaseContainerTools.FindEntitySource(Resource.Load("{37578B1666981FCE}Prefabs/Characters/Core/Character_Base.et"));
+			//vector worldCoord = SCR_BaseContainerTools.GetWorldCoords(entitySource, feetPos);
+			currentRagdoll.GetBoneRigidBody(0).ApplyForce(hitVector);
+		}
+		else{
+			
+
+			//currentRagdoll = RegenPhysicsRagdoll();
+			//Print("Regenareted ragdoll");
+
+			GetGame().GetCallqueue().Remove(PushRagdollAround);
+			return;
+		}
+		
+	
+	}
+	
+	
+	protected PhysicsRagdoll RegenPhysicsRagdoll(){
+			// Get original ragdoll and destroy it
+			PhysicsRagdoll.GetRagdoll(GetCharacter()).Destroy(1);
+			
+			// Recreate it
+			PhysicsRagdoll.CreateRagdoll(GetCharacter(), "{5DD1A0EBAD2116CB}Prefabs/Characters/Core/character_modded.ragdoll",1, EPhysicsLayerDefs.Ragdoll);
+			PhysicsRagdoll ragdoll = PhysicsRagdoll.GetRagdoll(GetCharacter());
+			
+			ragdoll.GetBoneRigidBody(0).EnableGravity(true);
+			ragdoll.GetBoneRigidBody(0).SetMass(1);		//just to be sure, 5 feels strange
+			ragdoll.GetBoneRigidBody(0).SetDamping(0.001,0.0001);
+			//test_phys.SetSleepingTreshold(0.000000001, 0.000000001);		//default 1 
+			ragdoll.GetBoneRigidBody(0).SetSleepingTreshold(1,1);		//default 1, doesn't seem to work?
+			ragdoll.Enable();
+		
+			return ragdoll;
+
+		
+	}
 	
 }
