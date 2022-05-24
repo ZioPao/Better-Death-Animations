@@ -8,41 +8,36 @@ class PAO_ScriptedCommandTest : ScriptedCommand
 		m_AnimationComponent 	= CharacterAnimationComponent.Cast(pAnimPhysComponent);		
 
 	}
-
-	//!
-	void StartSwimming()
-	{
-		//PreAnim_CallCommand(m_Table.m_CmdStartSwimming, 1, 1);
-	}
-
-	void EndSwimming()
-	{
-		//PreAnim_CallCommand(m_Table.m_CmdStartSwimming, 0, 0);
-	}
 	
-	//	
-	void UpdateWaterDepth()
-	{
-		//vector 	pp = m_pPlayer.GetPosition();
-		//vector  wl = HumanCommandSwim.WaterLevelCheck(m_pPlayer, pp);
-
-		//m_fWaterLevelDepth = wl[0];		// whats water depth at player's position
-		//m_fCharacterDepth = wl[1];		// whats character depth  at player's position
+	
+	
+	
+	void PushCharacter(){
+		
+		PrePhys_SetTranslation("100 0 0");
 	}
-
 
 	//! 
 	override void OnActivate()
 	{
-		//StartSwimming();
-		//m_AnimationComponent.PhysicsEnableGravity(false);
-		Print("Hello there!!!!!!!!!!");
+
+		Print("Started ScriptedCommandTest");
+		PrePhysUpdate(10);
+		m_AnimationComponent.PhysicsEnableGravity(true);
+		//PushCharacter();
+		
+		
+
 
 		
 	}
 
 	override void OnDeactivate()
 	{
+		
+		Print("Finished ScriptedCommandTest");
+		//m_AnimationComponent.PhysicsEnableGravity(true);
+
 	}
 
 	// called to set values to animation graph processing 
@@ -55,7 +50,9 @@ class PAO_ScriptedCommandTest : ScriptedCommand
 	override void 	PrePhysUpdate(float pDt)
 	{
 		Print("SCR_CharacterCommandSwim::PrePhysUpdate");
-		//PrePhys_SetTranslation(pDt);
+		
+		vector trans = vector.Zero;
+		PrePhys_GetTranslation(trans);		
 	}
 
 	//! called when all animation / pre phys update is handled

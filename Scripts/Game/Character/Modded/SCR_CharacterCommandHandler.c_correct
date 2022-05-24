@@ -1,15 +1,20 @@
 modded class SCR_CharacterCommandHandlerComponent : CharacterCommandHandlerComponent{
 	
 	protected ref PAO_ScriptedCommandTest m_ScriptedCommandTest;
-		
+
+	protected ref SCR_CharacterCommandFly m_FlyCmd;
+	protected ref SCR_CharacterCommandSwimST m_swim_st;
+
 	
 	override protected void OnInit(IEntity owner){
 	
 		super.OnInit(owner);
 		m_CharacterControllerComp = CharacterControllerComponent.Cast(m_OwnerEntity.FindComponent(CharacterControllerComponent));
 		
-		//m_ScriptedCommandTest = new PAO_ScriptedCommandTest(m_CharacterAnimComp);
-		
+		m_ScriptedCommandTest = new PAO_ScriptedCommandTest(m_CharacterAnimComp);
+		m_swim_st = new SCR_CharacterCommandSwimST(m_CharacterAnimComp);
+		m_FlyCmd = new SCR_CharacterCommandFly(m_CharacterAnimComp, m_swim_st, m_OwnerEntity, GetControllerComponent());
+
 		
 	}
 	
@@ -18,8 +23,12 @@ modded class SCR_CharacterCommandHandlerComponent : CharacterCommandHandlerCompo
 	
 	override bool HandleDeath(CharacterInputContext pInputCtx, float pDt, int pCurrentCommandID, bool pCurrentCommandFinished)
 	{
+		
+		
 		if (pCurrentCommandID == ECharacterCommandIDs.DEATH){
-			Print("Someone died");
+
+
+			
 			float die = pInputCtx.GetDie();
 			if ( die != 0.0 )
 			{
@@ -32,9 +41,13 @@ modded class SCR_CharacterCommandHandlerComponent : CharacterCommandHandlerCompo
 
 
 				
-				//pretty sure these are broken for now. So.... what now?
 				//m_CharacterAnimComp.SetCurrentCommand(m_ScriptedCommandTest); // it doesn't wanna work goddamn it
-	
+				
+				
+				//AnimPhysCommandScripted cmd = m_CharacterAnimComp.GetCommandScripted();
+			
+				//Print(cmd);
+
 				return true;
 			}
 
@@ -42,6 +55,27 @@ modded class SCR_CharacterCommandHandlerComponent : CharacterCommandHandlerCompo
 		
 		return false;
 		
+	}
+
+	
+	override bool SubhandlerStatesBegin(CharacterInputContext pInputCtx, float pDt, int pCurrentCommandID)
+	{
+		if( pCurrentCommandID == ECommandIDs.SCRIPTED )
+		{
+			AnimPhysCommandScripted cmd = m_CharacterAnimComp.GetCommandScripted();
+			
+			if( SCR_CharacterCommandFly.Cast(cmd) )
+				return true;
+			
+		}
+		
+		if ( pInputCtx.GetJump() > 0.0 )
+		{
+			m_CharacterAnimComp.SetCurrentCommand(m_FlyCmd);
+			return false;
+		}
+		
+		return false;
 	}
 	
 	

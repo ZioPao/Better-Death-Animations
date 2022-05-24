@@ -2,14 +2,7 @@ SCR_ChimeraCharacter {
  ID "520EC961A090B1EE"
  components {
   Ragdoll "{520EA1D2F659C83D}" {
-   Mass 59.7
-   Gravity 1
-   LinearDamping 0.4
-   AngularDamping 0.4
-   LinearSleepingThreashold 0
-   AngularSleepingThreashold 0
-   ResponseIndex "HugeDestructible"
-   Definition "{5DD1A0EBAD2116CB}Prefabs/Characters/Core/character_modded.ragdoll"
+   Gravity 0
   }
  }
  coords 0 0 0
