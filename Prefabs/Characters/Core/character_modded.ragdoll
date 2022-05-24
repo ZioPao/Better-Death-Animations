@@ -1,0 +1,112 @@
+
+//"bone bonename, simulated (true/false) [, mass]"
+// vlozi kost do characteru.
+// simulated urcuje, jestli se ma fyzikalne simulovat, nebo je jen virtualni
+// mass je hmotnost a MUSI byt uvedena, pokud je simulated = true
+
+//"addbone bonename, offset, simulated [, mass]"
+//prida interni kost do characteru. Je to moznost, jak pridat geometrii na koncove kosti
+
+//geometry bone1, bone2, radius
+//prida capsule geometrii mezi kosti bone1 a bone2 o prumeru radius.
+
+#define JOINT_DAMPER 0
+#define JOINT_STIFF 100
+#define HUMANOID_MATERIAL "{DA94EA1EF2914EB7}Common/Materials/Game/flesh.gamemat"
+
+//sixdofjoint "PitchY YawX RollZ", loX, hiX, loY, hiY, loZ, hiZ, stiff, damp
+
+//torso & head
+bone "hips", true, 0.4
+{
+	bone "Spine3", true, 0.4
+	{
+		sixdofjoint "0 0 0", -10, 50, 0, 0, 0, 0, 2, JOINT_DAMPER
+
+		bone "Head", true, 0.025
+		{
+			sixdofjoint "0 0 0", -35, 35, -45, 45, -30, 30, 200 , JOINT_DAMPER
+			addbone "HeadTerm", "0 0.1 0", false
+		}
+
+		//mixed left hand
+		bone "leftArm", true, 0.07
+		{
+			sixdofjoint "0 0 44", -90, 25, 0, 0, -45, 25, 200 , JOINT_DAMPER
+	
+
+			bone "LeftForeArm", true, 0.1
+			{
+				sixdofjoint "0 0 44", -90, 0, 0, 0, 0, 0, 200 , JOINT_DAMPER
+
+				bone "LeftHandMiddle1", false
+			}
+		}
+
+		//mixed right hand
+		bone "RightArm", true, 0.07
+		{
+			sixdofjoint "0 0 -44", -90, 25, 0, 0, -25, 45, 200 , JOINT_DAMPER
+
+			bone "RightForeArm", true, 0.1
+			{
+				sixdofjoint "0 0 -44", -90, 0, 0, 0, 0, 0, 200 , JOINT_DAMPER
+
+				bone "RightHandMiddle1", false
+			}
+		}
+	}
+	//osa jointu ve stehni je 45' dopredu a cca 20' dovnitr. Diky tomu nam cone-limit
+	//udrzi nohy ve spravnych uhlech
+	bone "leftleg", true, 0.2
+	{
+		sixdofjoint "0 0 0", -95, 3, 0, 0, -45, 5, 200 , JOINT_DAMPER
+
+		bone "leftknee", true, 0.15
+		{
+			sixdofjoint "0 0 0", 0, 110, 0, 0, 0, 0, 200 , JOINT_DAMPER
+
+			bone "leftfoot", true, 0.05
+			{
+				fixedjoint
+				bone "lefttoe", false
+			}
+		}
+	}
+
+	bone "rightleg", true, 0.2
+	{
+		sixdofjoint "0 0 0", -95, 3, 0, 0, -5, 45, 200 , JOINT_DAMPER
+
+		bone "rightknee", true, 0.15
+		{
+			sixdofjoint "0 0 0", 0, 110, 0, 0, 0, 0, 200 , JOINT_DAMPER
+
+			bone "rightfoot", true, 0.05
+			{
+				fixedjoint
+				bone "righttoe", false
+			}
+		}
+	}
+}
+
+geometry "hips", "Spine3", 0.15, HUMANOID_MATERIAL
+geometry "Spine3", "Head", 0.14, HUMANOID_MATERIAL
+geometry "Head", "HeadTerm", 0.10, HUMANOID_MATERIAL
+
+geometry "LeftArm", "LeftForeArm", 0.06, HUMANOID_MATERIAL
+geometry "LeftForeArm", "LeftHandMiddle1", 0.045, HUMANOID_MATERIAL
+geometry "RightArm", "RightForeArm", 0.06, HUMANOID_MATERIAL
+geometry "RightForeArm", "RightHandMiddle1", 0.045, HUMANOID_MATERIAL
+
+geometry "LeftLeg", "LeftKnee", 0.08, HUMANOID_MATERIAL
+geometry "RightLeg", "RightKnee", 0.06, HUMANOID_MATERIAL
+geometry "LeftKnee", "LeftFoot", 0.08, HUMANOID_MATERIAL
+geometry "RightKnee", "RightFoot", 0.06, HUMANOID_MATERIAL
+
+geometry "RightFoot", "RightToe", 0.06, HUMANOID_MATERIAL
+geometry "LeftFoot", "LeftToe", 0.06, HUMANOID_MATERIAL
+
+block "LeftLeg", "Spine3"
+block "RightLeg", "Spine3"

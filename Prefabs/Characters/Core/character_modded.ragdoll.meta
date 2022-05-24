@@ -1,0 +1,15 @@
+MetaFileClass {
+ Name "{5DD1A0EBAD2116CB}Prefabs/Characters/Core/character_modded.ragdoll"
+ Configurations {
+  PhysicsRagdollResourceClass PC {
+  }
+  PhysicsRagdollResourceClass XBOX_ONE : PC {
+  }
+  PhysicsRagdollResourceClass XBOX_SERIES : PC {
+  }
+  PhysicsRagdollResourceClass PS4 : PC {
+  }
+  PhysicsRagdollResourceClass HEADLESS : PC {
+  }
+ }
+}
