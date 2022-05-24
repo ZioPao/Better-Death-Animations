@@ -19,25 +19,25 @@
 //torso & head
 bone "hips", true, 0.1
 {
-	bone "Spine3", true, 0.1
+	bone "Spine3", true, 1
 	{
-		sixdofjoint "0 0 0", -10, 50, 0, 0, 0, 0, 2, JOINT_STIFF
+		sixdofjoint "0 0 0", -10, 10, 0, 0, -10, 15, 25, 200
 
 		bone "Head", true, 0.6
 		{
-			sixdofjoint "0 0 0", -35, 35, -45, 45, -30, 30, 200 , JOINT_STIFF
+			sixdofjoint "0 0 0", -35, 35, -45, 45, -30, 30, 200 , 25
 			addbone "HeadTerm", "0 0.1 0", false
 		}
 
 		//mixed left hand
 		bone "leftArm", true, 0.07
 		{
-			sixdofjoint "0 0 44", -90, 25, 0, 0, -45, 25, 200 , JOINT_DAMPER
+			sixdofjoint "0 0 -10", -90, 25, -50, 50, -45, 25, 1 , 15
 	
 
 			bone "LeftForeArm", true, 0.1
 			{
-				sixdofjoint "0 0 44", -90, 0, 0, 0, 0, 0, 200 , JOINT_DAMPER
+				sixdofjoint "0 0 10", -25, 25, 0, 0, 0, 0, 1 , 15
 
 				bone "LeftHandMiddle1", false
 			}
@@ -46,11 +46,11 @@ bone "hips", true, 0.1
 		//mixed right hand
 		bone "RightArm", true, 0.07
 		{
-			sixdofjoint "0 0 -44", -90, 25, 0, 0, -25, 45, 200 , JOINT_DAMPER
+			sixdofjoint "0 0 10", -90, 25, -50, 50, -45, 25, 1 , 15
 
 			bone "RightForeArm", true, 0.1
 			{
-				sixdofjoint "0 0 -44", -90, 0, 0, 0, 0, 0, 200 , JOINT_DAMPER
+				sixdofjoint "0 0 -10", -25, 25, 0, 0, 0, 0, 1 , 15
 
 				bone "RightHandMiddle1", false
 			}
@@ -58,13 +58,13 @@ bone "hips", true, 0.1
 	}
 	//osa jointu ve stehni je 45' dopredu a cca 20' dovnitr. Diky tomu nam cone-limit
 	//udrzi nohy ve spravnych uhlech
-	bone "leftleg", true, 0.05
+	bone "leftleg", true, 0.5
 	{
-		sixdofjoint "0 0 0", -25, 9, 0, 0, -45, 45, 200 , JOINT_STIFF
+		sixdofjoint "0 0 0", -25, 0, 0, 0, -45, 20, 5 , 250
 
 		bone "leftknee", true, 0.15
 		{
-			sixdofjoint "0 0 0", 0, 110, 0, 0, 0, 0, 200 , JOINT_STIFF
+			sixdofjoint "0 0 0", 0, 110, 0, 0, 0, 0, 1 , 25
 
 			bone "leftfoot", true, 0.05
 			{
@@ -74,13 +74,13 @@ bone "hips", true, 0.1
 		}
 	}
 
-	bone "rightleg", true, 0.05
+	bone "rightleg", true, 0.5
 	{
-		sixdofjoint "0 0 0", -25, 0, 0, 0, -45, 45, 200 , JOINT_STIFF
+		sixdofjoint "0 0 0", -25, 0, 0, 0, -45, 20, 5 , 250
 
 		bone "rightknee", true, 0.15
 		{
-			sixdofjoint "0 0 0", 0, 110, 0, 0, 0, 0, 200 , JOINT_STIFF
+			sixdofjoint "0 0 0", 0, 110, 0, 0, 0, 0, 1 , 25
 
 			bone "rightfoot", true, 0.05
 			{
