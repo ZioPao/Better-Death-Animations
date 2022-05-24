@@ -1,9 +1,0 @@
-SCR_ChimeraCharacter {
- ID "520EC961A090B1EE"
- components {
-  Ragdoll "{520EA1D2F659C83D}" {
-   Gravity 0
-  }
- }
- coords 0 0 0
-}

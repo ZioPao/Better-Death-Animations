@@ -33,13 +33,13 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 		//GetCharacter().GetPhysics().ApplyImpulse("0 1000 0");
 		//GetCharacter().GetPhysics().ApplyImpulse("0 1000 0");
 		
+		// todo init them before
 		SCR_PlayerController pc = SCR_PlayerController.Cast(GetGame().GetPlayerController());
 		CharacterControllerComponent cc = CharacterControllerComponent.Cast(pc.GetControlledEntity().FindComponent(CharacterControllerComponent));
 		CharacterAnimationComponent cc_ac = CharacterAnimationComponent.Cast(cc.FindComponent(CharacterAnimationComponent));		
 		CharacterControllerComponent test_CC = CharacterControllerComponent.Cast(GetCharacter().FindComponent(CharacterControllerComponent));
-		
 		SCR_HybridPhysicsComponent test_hpc = SCR_HybridPhysicsComponent.Cast(GetCharacter().FindComponent(SCR_HybridPhysicsComponent));
-
+		SCR_CharacterDamageManagerComponent damageComponent = SCR_CharacterDamageManagerComponent.Cast(GetCharacter().FindComponent(SCR_CharacterDamageManagerComponent));
 		
 		
 		
@@ -59,15 +59,44 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 			PhysicsRagdoll.GetRagdoll(GetCharacter()).Destroy(1);
 			
 			// Recreate it
-			PhysicsRagdoll.CreateRagdoll(GetCharacter(), "{CE761502CE2E1990}Prefabs/Characters/character.ragdoll", 10, EPhysicsLayerDefs.Ragdoll);
-			
+			PhysicsRagdoll.CreateRagdoll(GetCharacter(), "{5DD1A0EBAD2116CB}Prefabs/Characters/Core/character_modded.ragdoll",1, EPhysicsLayerDefs.Ragdoll);
 			PhysicsRagdoll current_ragdoll = PhysicsRagdoll.GetRagdoll(GetCharacter());
-			
 			Physics test_phys = current_ragdoll.GetBoneRigidBody(0);
-			Print(test_phys);
+			
+			test_phys.EnableGravity(true);
+			test_phys.SetMass(1);		//just to be sure, 5 feels strange
+			test_phys.SetDamping(0.001,0.0001);
+			//test_phys.SetSleepingTreshold(0.000000001, 0.000000001);		//default 1 
+			test_phys.SetSleepingTreshold(1,1);		//default 1, doesn't seem to work?
+
 			
 			
-			test_phys.ApplyImpulse("0 100 0");
+			// Get Last Hit
+			array<vector> lastHitArray = damageComponent.GetLastHit();
+			
+			
+			
+			Print(test_phys.GetVelocity());
+			
+			float x = Math.RandomFloatInclusive(-1.5, 0.0);
+			float y = Math.RandomFloatInclusive(-1.5, 0.0);
+			float z = Math.RandomFloatInclusive(-1.5, 0.0);
+			
+			
+			vector hitVector = {x,y,z};
+			//vector hitVector = {Math.RandomFloatInclusive(-1.0, 0.0), -1.0, Math.RandomFloatIncluse(-1.0, 0.0)};
+			
+			
+			
+			
+			
+			test_phys.SetVelocity(hitVector);
+			Print(test_phys.GetVelocity());
+			Print("_____________________________");
+			
+			//test_phys.ApplyImpulse("0 -10 0");
+			/// we need to calculate the direction of the hit before doing anything else
+			//test_phys.ApplyForceAt(lastHitArray[0], lastHitArray[1]);		//really dumb test
 			current_ragdoll.Enable();
 			
 			
@@ -75,16 +104,7 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 			
 			test_CC.Ragdoll();
 			
-			
-			
-			//Physics temp_rag_physics = ragdoll.GetBoneRigidBody(0);
-			
-			//SCR_CharacterCommandHandlerComponent cchc = FindCommandHandler(instigator);
-			//cchc.HandleDeath(cic, 0, 26, true);
-			
-			
-			//PhysicsRagdoll.CreateRagdoll(GetCharacter(), "character_modded.ragdoll", 10, 0)
-			//Physics test_phys_2 = PhysicsRagdoll.GetRagdoll(GetCharacter());
+
 			
 			
 		}
@@ -94,7 +114,7 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 		
 		// Insert the character and see if it held a weapon, if so, try adding that as well
 		
-		/*
+		
 		GarbageManager garbageManager = GetGame().GetGarbageManager();
 		if (garbageManager)
 		{
@@ -118,7 +138,7 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 				return;
 			
 			garbageManager.Insert(weaponEntity);
-		}*/
+		}
 		
 	}
 		

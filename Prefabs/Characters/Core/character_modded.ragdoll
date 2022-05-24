@@ -10,22 +10,22 @@
 //geometry bone1, bone2, radius
 //prida capsule geometrii mezi kosti bone1 a bone2 o prumeru radius.
 
-#define JOINT_DAMPER 0
+#define JOINT_DAMPER 0.25
 #define JOINT_STIFF 100
 #define HUMANOID_MATERIAL "{DA94EA1EF2914EB7}Common/Materials/Game/flesh.gamemat"
 
 //sixdofjoint "PitchY YawX RollZ", loX, hiX, loY, hiY, loZ, hiZ, stiff, damp
 
 //torso & head
-bone "hips", true, 0.4
+bone "hips", true, 0.7
 {
-	bone "Spine3", true, 0.4
+	bone "Spine3", true, 0.9
 	{
-		sixdofjoint "0 0 0", -10, 50, 0, 0, 0, 0, 2, JOINT_DAMPER
+		sixdofjoint "0 0 0", -10, 50, 0, 0, 0, 0, 2, JOINT_STIFF
 
-		bone "Head", true, 0.025
+		bone "Head", true, 0.6
 		{
-			sixdofjoint "0 0 0", -35, 35, -45, 45, -30, 30, 200 , JOINT_DAMPER
+			sixdofjoint "0 0 0", -35, 35, -45, 45, -30, 30, 200 , JOINT_STIFF
 			addbone "HeadTerm", "0 0.1 0", false
 		}
 
@@ -58,13 +58,13 @@ bone "hips", true, 0.4
 	}
 	//osa jointu ve stehni je 45' dopredu a cca 20' dovnitr. Diky tomu nam cone-limit
 	//udrzi nohy ve spravnych uhlech
-	bone "leftleg", true, 0.2
+	bone "leftleg", true, 0.01
 	{
-		sixdofjoint "0 0 0", -95, 3, 0, 0, -45, 5, 200 , JOINT_DAMPER
+		sixdofjoint "0 0 0", -25, 9, 0, 0, -45, 5, 200 , JOINT_STIFF
 
 		bone "leftknee", true, 0.15
 		{
-			sixdofjoint "0 0 0", 0, 110, 0, 0, 0, 0, 200 , JOINT_DAMPER
+			sixdofjoint "0 0 0", 0, 110, 0, 0, 0, 0, 200 , JOINT_STIFF
 
 			bone "leftfoot", true, 0.05
 			{
@@ -74,13 +74,13 @@ bone "hips", true, 0.4
 		}
 	}
 
-	bone "rightleg", true, 0.2
+	bone "rightleg", true, 1
 	{
-		sixdofjoint "0 0 0", -95, 3, 0, 0, -5, 45, 200 , JOINT_DAMPER
+		sixdofjoint "0 0 0", -25, 0, 0, 0, -5, 45, 200 , JOINT_STIFF
 
 		bone "rightknee", true, 0.15
 		{
-			sixdofjoint "0 0 0", 0, 110, 0, 0, 0, 0, 200 , JOINT_DAMPER
+			sixdofjoint "0 0 0", 0, 110, 0, 0, 0, 0, 200 , JOINT_STIFF
 
 			bone "rightfoot", true, 0.05
 			{
@@ -91,13 +91,13 @@ bone "hips", true, 0.4
 	}
 }
 
-geometry "hips", "Spine3", 0.15, HUMANOID_MATERIAL
+geometry "hips", "Spine3", 0.25, HUMANOID_MATERIAL
 geometry "Spine3", "Head", 0.14, HUMANOID_MATERIAL
 geometry "Head", "HeadTerm", 0.10, HUMANOID_MATERIAL
 
-geometry "LeftArm", "LeftForeArm", 0.06, HUMANOID_MATERIAL
+geometry "LeftArm", "LeftForeArm", 0.1, HUMANOID_MATERIAL
 geometry "LeftForeArm", "LeftHandMiddle1", 0.045, HUMANOID_MATERIAL
-geometry "RightArm", "RightForeArm", 0.06, HUMANOID_MATERIAL
+geometry "RightArm", "RightForeArm", 0.1, HUMANOID_MATERIAL
 geometry "RightForeArm", "RightHandMiddle1", 0.045, HUMANOID_MATERIAL
 
 geometry "LeftLeg", "LeftKnee", 0.08, HUMANOID_MATERIAL
