@@ -54,8 +54,7 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 
 		if (m_OnPlayerDeathWithParam)
 			m_OnPlayerDeathWithParam.Invoke(this, instigator);
-		
-		
+
 		//Get the delta time for everything after this 
 		deltaTime = CalculateDeltaTime(true);
 
@@ -90,7 +89,8 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 			
 			vector hitZoneColliders[4];
 			hitZone.TryGetColliderDescription(GetCharacter(), hitZoneColliderID, hitZoneColliders, null, null);
-
+			CharacterIdentityComponent identity = CharacterIdentityComponent.Cast(GetCharacter().FindComponent(CharacterIdentityComponent));
+			identity.SetCovered(hitZoneName, false);
 			
 			//we need to figure out what vector we actually need.... now 
 			//Print(GetCharacter().GetTransform(hitZoneColliders));
@@ -324,7 +324,7 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 			for(int i = 0; i < currentBones; i++){
 				float x = Math.RandomFloatInclusive(-valToScaleXZ, valToScaleXZ);
 				//float y = Math.RandomFloatInclusive(-valToScaleY, 0.01);
-				float y = Math.Lerp(-0.00001, -0.00015, deltaTime);
+				float y = Math.Lerp(-0.000001, -0.00015, deltaTime);
 
 				float z = Math.RandomFloatInclusive(-valToScaleXZ, valToScaleXZ);
 				//Print(y);
