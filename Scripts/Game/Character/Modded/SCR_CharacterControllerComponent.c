@@ -374,11 +374,11 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 			{
 
 				tempX = 0;
-				tempY = Math.Lerp(-0.001, -0.03, deltaTime);
+				tempY = Math.Lerp(-0.001, -0.02, deltaTime);
 				
-				if (Math.AbsFloat(tempY) < 0.03){
-					GetGame().GetCallqueue().Remove(FastRagdollDeath();
-					return;
+				if (Math.AbsFloat(tempY) > 0.02){
+					tempY = - 0.02;
+					
 				}
 				
 				Print(tempY);
