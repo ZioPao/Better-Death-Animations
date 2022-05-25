@@ -2,9 +2,9 @@ modded class SCR_CharacterDamageManagerComponent : ScriptedDamageManagerComponen
 
 	// we need to have some references to some aspects 
 	
-	private vector lastHit[3];
-	private string hitZoneName;
-	
+	private vector lastHitCoordinates[3];
+	private HitZone lastHitZone;
+	private int lastColliderID;
 	
 	//-----------------------------------------------------------------------------------------------------------
 	protected override void OnDamage(
@@ -18,27 +18,34 @@ modded class SCR_CharacterDamageManagerComponent : ScriptedDamageManagerComponen
 				int nodeID)
 	{
 		super.OnDamage(type, damage, pHitZone, instigator, hitTransform, speed, colliderID, nodeID);
-		lastHit = hitTransform;
-		hitZoneName = pHitZone.GetName();
+		lastHitCoordinates = hitTransform;
+		lastHitZone = pHitZone;
 		
 		UpdateBloodyFace();
 	}
 
 	
-	array<vector> GetLastHit(){
+	array<vector> GetLastHitCoordinates(){
 		
 		// i know it's shit, i dunno how to return an array right now so yeah.
 		array<vector> temp = {};
 		
-		temp.Insert(lastHit[0]);
-		temp.Insert(lastHit[1]);
-		temp.Insert(lastHit[2]);
+		temp.Insert(lastHitCoordinates[0]);
+		temp.Insert(lastHitCoordinates[1]);
+		temp.Insert(lastHitCoordinates[2]);
 		return temp;
 	
 	}
 	
-	string GetHitZoneName(){
-		return hitZoneName;
+	HitZone GetLastHitZone(){
+		return lastHitZone;
+	
 	}
+	
+	int GetLastColliderID(){
+		return lastColliderID;
+	}
+
+	
 		
 }

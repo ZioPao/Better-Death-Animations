@@ -4,8 +4,10 @@ SCR_ChimeraCharacter {
   SCR_CharacterControllerComponent "{520EA1D2F659CEA5}" {
    DeathTimer 20
   }
+  Ragdoll "{520EA1D2F659C83D}" {
+  }
   CharacterAnimationComponent "{520EA1D2F659C994}" {
-   RagdollDisableTimer 25.5
+   RagdollDisableTimer 20
   }
  }
 }
