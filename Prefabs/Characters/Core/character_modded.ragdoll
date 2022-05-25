@@ -46,11 +46,11 @@ bone "hips", true, 0.1
 		//mixed right hand
 		bone "RightArm", true, 0.07
 		{
-			sixdofjoint "0 0 10", -90, 25, -50, 50, -45, 25, 1 , 15
+			sixdofjoint "0 0 10", -90, 25, -50, 50, -45, 25, 100 , 15
 
 			bone "RightForeArm", true, 0.1
 			{
-				sixdofjoint "0 0 -10", -25, 25, 0, 0, 0, 0, 1 , 15
+				sixdofjoint "0 0 -10", -25, 25, 0, 0, 0, 0, 100 , 15
 
 				bone "RightHandMiddle1", false
 			}
@@ -64,9 +64,9 @@ bone "hips", true, 0.1
 
 		bone "leftknee", true, 0.15
 		{
-			sixdofjoint "0 0 0", 0, 110, 0, 0, 0, 0, 1 , 25
+			sixdofjoint "0 0 0", 0, 110, 0, 0, 0, 0, 100 , 25
 
-			bone "leftfoot", true, 0.05
+			bone "leftfoot", true, 0.01
 			{
 				fixedjoint
 				bone "lefttoe", false
@@ -80,9 +80,9 @@ bone "hips", true, 0.1
 
 		bone "rightknee", true, 0.15
 		{
-			sixdofjoint "0 0 0", 0, 110, 0, 0, 0, 0, 1 , 25
+			sixdofjoint "0 0 0", 0, 110, 0, 0, 0, 0, 100 , 25
 
-			bone "rightfoot", true, 0.05
+			bone "rightfoot", true, 0.01
 			{
 				fixedjoint
 				bone "righttoe", false

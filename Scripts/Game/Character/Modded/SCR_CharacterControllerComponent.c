@@ -5,6 +5,7 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 	//protected ref PAO_SCTest m_testImpulse;
 
 	PhysicsRagdoll currentRagdoll;
+	GenericEntity waypointTestPao;
 	
 	
 	
@@ -30,10 +31,7 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 
 		if (m_OnPlayerDeathWithParam)
 			m_OnPlayerDeathWithParam.Invoke(this, instigator);
-		
-		//GetCharacter().GetPhysics().ApplyImpulse("0 1000 0");
-		//GetCharacter().GetPhysics().ApplyImpulse("0 1000 0");
-		//GetCharacter().GetPhysics().ApplyImpulse("0 1000 0");
+
 		
 		// todo init them before
 		SCR_PlayerController pc = SCR_PlayerController.Cast(GetGame().GetPlayerController());
@@ -42,11 +40,8 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 		CharacterControllerComponent test_CC = CharacterControllerComponent.Cast(GetCharacter().FindComponent(CharacterControllerComponent));
 		SCR_HybridPhysicsComponent test_hpc = SCR_HybridPhysicsComponent.Cast(GetCharacter().FindComponent(SCR_HybridPhysicsComponent));
 		SCR_CharacterDamageManagerComponent damageComponent = SCR_CharacterDamageManagerComponent.Cast(GetCharacter().FindComponent(SCR_CharacterDamageManagerComponent));
-		
-		
-		
-		
-		
+
+	
 		CharacterInputContext cic = test_CC.GetInputContext();
 		
 		//Probably slow as fuck, I don't care right now
@@ -71,11 +66,17 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 			vector hitVector = {lastHitDirection[0], lastHitDirection[1], lastHitDirection[2]};		// y stays the same since we want a little more oomph
 			
 			
+			vector hitPosition = {lastHitArray[0][0], lastHitArray[0][1], lastHitArray[0][2]};
+			
 			////if it's a headshot, then no rolling around 
 			string hitZoneName = damageComponent.GetHitZoneName();
 			
 			
-			currentRagdoll.GetBoneRigidBody(0).SetVelocity(hitVector*2);		//impact or velocity?
+			//we should interpolate between the hitVector and the vector of the velocity of the player  
+			
+			
+			
+			currentRagdoll.GetBoneRigidBody(0).ApplyImpulseAt(hitPosition, hitVector/10);		//impact or velocity?
 			test_CC.Ragdoll();
 			
 			
@@ -101,9 +102,19 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 			Print("+____________________________");			
 			#endif
 
-			
-			
+
 		}
+		else{
+			SCR_CharacterCommandHandlerComponent tempHandler = FindCommandHandler(GetCharacter());
+			float dyingDirection = cic.GetDie();
+			
+			if (dyingDirection != 0.0)
+				tempHandler.StartCommand_Death(dyingDirection);
+
+
+		}
+				
+			
 
 		if (pc && m_CameraHandler && m_CameraHandler.IsInThirdPerson())
 			pc.m_bRetain3PV = true;
@@ -138,6 +149,8 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 		
 	}
 		
+	
+	
 	float counter = 1;
 	 
 	void PushRagdollAround(){
@@ -147,8 +160,6 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 
 		if(currentRagdoll.GetNumBones() > 0){
 			
-			currentRagdoll.GetBoneRigidBody(0).SetMass(25);		// Bigger boy in realtime?
-
 			//vector hitVector = {0.0 ,-0.8 , 0.0};
 			//currentRagdoll.GetBoneRigidBody(0).ApplyImpulse(hitVector);
 			
@@ -163,7 +174,7 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 			
 			//IEntitySource entitySource = SCR_BaseContainerTools.FindEntitySource(Resource.Load("{37578B1666981FCE}Prefabs/Characters/Core/Character_Base.et"));
 			//vector worldCoord = SCR_BaseContainerTools.GetWorldCoords(entitySource, feetPos);
-			currentRagdoll.GetBoneRigidBody(0).SetVelocity(hitVector);
+			currentRagdoll.GetBoneRigidBody(0).ApplyImpulse(hitVector);
 			
 			
 			#ifdef DEBUG_PAODEBUG_PAO
@@ -186,26 +197,33 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 	
 	}
 	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	//Used in case of headshots
 	void FastRagdollDeath(){
 				
 		//todo make a time limit 
 
 		if(currentRagdoll.GetNumBones() > 0){
-			
-			currentRagdoll.GetBoneRigidBody(0).SetMass(25);		// Bigger boy in realtime?
-			
+					
 			vector currentVelocity = currentRagdoll.GetBoneRigidBody(0).GetVelocity();
 			
-			Print(Math.AbsFloat(currentVelocity[0]));
-			if (Math.AbsFloat(currentVelocity[0]) < 0.025){
+			if (Math.AbsFloat(currentVelocity[0]) < 0.022){
 
 				currentRagdoll.Destroy(false);
 				GetGame().GetCallqueue().Remove(FastRagdollDeath);
 				return;
 				}
 			else{
-				currentRagdoll.GetBoneRigidBody(0).SetVelocity(currentVelocity/4);
+				currentRagdoll.GetBoneRigidBody(0).SetVelocity(currentVelocity/6);
 
 			}
 			
@@ -227,8 +245,11 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 			PhysicsRagdoll.CreateRagdoll(GetCharacter(), "{5DD1A0EBAD2116CB}Prefabs/Characters/Core/character_modded.ragdoll", 1, EPhysicsLayerDefs.Ragdoll);
 			PhysicsRagdoll ragdoll = PhysicsRagdoll.GetRagdoll(GetCharacter());
 			
+			ragdoll.GetBoneRigidBody(0).SetMass(2);
+			Print(ragdoll.GetBoneRigidBody(0).GetMass());
+			
 			ragdoll.GetBoneRigidBody(0).EnableGravity(true);
-			ragdoll.GetBoneRigidBody(0).SetMass(5);		// SET THIS HIGHER!!!!
+			//ragdoll.GetBoneRigidBody(0).SetMass(5);		// SET THIS HIGHER!!!!
 			ragdoll.GetBoneRigidBody(0).SetDamping(0.000000001 ,0.000000001);
 			//test_phys.SetSleepingTreshold(0.000000001, 0.000000001);		//default 1 
 			ragdoll.GetBoneRigidBody(0).SetSleepingTreshold(1,1);		//default 1, doesn't seem to work?

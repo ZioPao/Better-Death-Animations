@@ -48,6 +48,9 @@ TimeAndWeatherManagerEntity {
 CameraBase CameraBase1 {
  coords 70.647 0 37.569
 }
+GenericEntity WP_DYNAMIC {
+ coords 35.024 11.86 4.587
+}
 SCR_PlayerSpawnPoint {
  coords 78.901 11.859 37.132
 }
