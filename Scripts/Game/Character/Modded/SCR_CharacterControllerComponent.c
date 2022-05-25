@@ -38,7 +38,8 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 		CharacterControllerComponent cc = CharacterControllerComponent.Cast(pc.GetControlledEntity().FindComponent(CharacterControllerComponent));
 		CharacterAnimationComponent cc_ac = CharacterAnimationComponent.Cast(cc.FindComponent(CharacterAnimationComponent));		
 		CharacterControllerComponent test_CC = CharacterControllerComponent.Cast(GetCharacter().FindComponent(CharacterControllerComponent));
-		SCR_HybridPhysicsComponent test_hpc = SCR_HybridPhysicsComponent.Cast(GetCharacter().FindComponent(SCR_HybridPhysicsComponent));
+
+	
 		SCR_CharacterDamageManagerComponent damageComponent = SCR_CharacterDamageManagerComponent.Cast(GetCharacter().FindComponent(SCR_CharacterDamageManagerComponent));
 
 	
@@ -49,8 +50,8 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 		if (pc.GetControlledEntity().FindComponent(CharacterControllerComponent) != test_CC){
 			//having this seems to force the commandid to shut off before we can actually use it
 
-			//
-			
+			vector currentCharVelocity = cc.GetMovementVelocity();
+		
 			
 			// Get original ragdoll and destroy it
 			PhysicsRagdoll.GetRagdoll(GetCharacter()).Destroy(1);
@@ -73,10 +74,28 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 			
 			
 			//we should interpolate between the hitVector and the vector of the velocity of the player  
+			vector finalHit;
 			
 			
 			
-			currentRagdoll.GetBoneRigidBody(0).ApplyImpulseAt(hitPosition, hitVector/10);		//impact or velocity?
+			// INTERPOLATION IS A MESSY STEP SO FOR NOW LET'S DISABLE IT OOPS 
+			//Print(currentCharVelocity);
+			/*
+			if (currentCharVelocity.Length() > 0.2){
+				finalHit = vector.Lerp(currentCharVelocity, hitVector/10, 0.5);
+			
+			}
+			else{
+			
+				finalHit = hitVector/10;
+
+			
+			}
+			*/
+			finalHit = hitVector/10;
+
+				
+			currentRagdoll.GetBoneRigidBody(0).ApplyImpulseAt(hitPosition, finalHit);		//impact or velocity?
 			test_CC.Ragdoll();
 			
 			
@@ -246,7 +265,6 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 			PhysicsRagdoll ragdoll = PhysicsRagdoll.GetRagdoll(GetCharacter());
 			
 			ragdoll.GetBoneRigidBody(0).SetMass(2);
-			Print(ragdoll.GetBoneRigidBody(0).GetMass());
 			
 			ragdoll.GetBoneRigidBody(0).EnableGravity(true);
 			//ragdoll.GetBoneRigidBody(0).SetMass(5);		// SET THIS HIGHER!!!!
