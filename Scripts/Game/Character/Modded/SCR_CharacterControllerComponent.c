@@ -6,23 +6,35 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 
 	PhysicsRagdoll currentRagdoll;
 	GenericEntity waypointTestPao;
+	CharacterControllerComponent m_characterControllerComponent;
+	SCR_CharacterDamageManagerComponent m_characterDamageManagerComponent;
+	float counter = 1;
 	
-	
-	
-	
-	protected SCR_CharacterCommandHandlerComponent FindCommandHandler(IEntity pUser)
+	override void OnInit(IEntity owner)
 	{
 		ChimeraCharacter character = GetCharacter();
 		if (!character)
-			return null;
+			return;
 		
-		CharacterAnimationComponent animationComponent = character.GetCharacterController().GetAnimationComponent();
-		if (!animationComponent)
-			return null;
-		
-		return SCR_CharacterCommandHandlerComponent.Cast(animationComponent.FindComponent(SCR_CharacterCommandHandlerComponent));
+		if (!m_WeaponManager)
+			m_WeaponManager = BaseWeaponManagerComponent.Cast(character.FindComponent(BaseWeaponManagerComponent));
+
+		if (!m_MeleeComponent)
+			m_MeleeComponent = SCR_MeleeComponent.Cast(character.FindComponent(SCR_MeleeComponent));
+		if (!m_CameraHandler)
+			m_CameraHandler = SCR_CharacterCameraHandlerComponent.Cast(character.FindComponent(SCR_CharacterCameraHandlerComponent));
+		if (!m_characterControllerComponent)
+			m_characterControllerComponent = CharacterControllerComponent.Cast(character.FindComponent(CharacterControllerComponent));
+		if (!m_characterDamageManagerComponent)
+			m_characterDamageManagerComponent = SCR_CharacterDamageManagerComponent.Cast(character.FindComponent(SCR_CharacterDamageManagerComponent));
+
+		#ifdef ENABLE_DIAG
+		if (!m_AnimComponent)
+			m_AnimComponent = CharacterAnimationComponent.Cast(character.FindComponent(CharacterAnimationComponent));
+		#endif	
 	}
 	
+
 	override void OnDeath(IEntity instigator)
 	{
 
@@ -33,26 +45,12 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 			m_OnPlayerDeathWithParam.Invoke(this, instigator);
 
 		
-		// todo init them before
-		SCR_PlayerController pc = SCR_PlayerController.Cast(GetGame().GetPlayerController());
-		CharacterControllerComponent cc = CharacterControllerComponent.Cast(pc.GetControlledEntity().FindComponent(CharacterControllerComponent));
-		CharacterAnimationComponent cc_ac = CharacterAnimationComponent.Cast(cc.FindComponent(CharacterAnimationComponent));		
-		CharacterControllerComponent test_CC = CharacterControllerComponent.Cast(GetCharacter().FindComponent(CharacterControllerComponent));
+		// Get the player stuff. We'll do it here 'cause we can't rely on OnInit since it could have changed. 
+		SCR_PlayerController m_playerController = SCR_PlayerController.Cast(GetGame().GetPlayerController());
+		CharacterControllerComponent m_playerCharacterControllerComponent = CharacterControllerComponent.Cast(m_playerController.GetControlledEntity().FindComponent(CharacterControllerComponent));
 
-	
-		SCR_CharacterDamageManagerComponent damageComponent = SCR_CharacterDamageManagerComponent.Cast(GetCharacter().FindComponent(SCR_CharacterDamageManagerComponent));
-
-	
-		CharacterInputContext cic = test_CC.GetInputContext();
 		
-		//Probably slow as fuck, I don't care right now
-		
-		if (pc.GetControlledEntity().FindComponent(CharacterControllerComponent) != test_CC){
-			//having this seems to force the commandid to shut off before we can actually use it
-
-			vector currentCharVelocity = cc.GetMovementVelocity();
-		
-			
+		if (m_playerCharacterControllerComponent != m_characterControllerComponent){
 			// Get original ragdoll and destroy it
 			PhysicsRagdoll.GetRagdoll(GetCharacter()).Destroy(1);
 			
@@ -60,19 +58,17 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 			currentRagdoll = RegenPhysicsRagdoll();
 
 
+			//Get currentCharVelocity to interpolate with hitPosition later
+			//vector currentCharVelocity = m_playerCharacterControllerComponent.GetMovementVelocity();
+
 			
 			// Get Last Hit
-			array<vector> lastHitArray = damageComponent.GetLastHit();
+			array<vector> lastHitArray = m_characterDamageManagerComponent.GetLastHit();
 			vector lastHitDirection = {lastHitArray[1][0], lastHitArray[1][1], lastHitArray[1][2]};		// for some reason I can't assign a vec to a vec so whatever
 			vector hitVector = {lastHitDirection[0], lastHitDirection[1], lastHitDirection[2]};		// y stays the same since we want a little more oomph
-			
-			
 			vector hitPosition = {lastHitArray[0][0], lastHitArray[0][1], lastHitArray[0][2]};
-			
-			////if it's a headshot, then no rolling around 
-			string hitZoneName = damageComponent.GetHitZoneName();
-			
-			
+			//if it's a headshot, then no rolling around 
+			string hitZoneName = m_characterDamageManagerComponent.GetHitZoneName();
 			//we should interpolate between the hitVector and the vector of the velocity of the player  
 			vector finalHit;
 			
@@ -92,12 +88,10 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 			
 			}
 			*/
-			finalHit = hitVector/10;
-
-				
-			currentRagdoll.GetBoneRigidBody(0).ApplyImpulseAt(hitPosition, finalHit);		//impact or velocity?
-			test_CC.Ragdoll();
 			
+			finalHit = hitVector/10;
+			currentRagdoll.GetBoneRigidBody(0).ApplyImpulseAt(hitPosition, finalHit);		//impact or velocity?
+			m_characterControllerComponent.Ragdoll();
 			
 			
 			if (hitZoneName == "Head"){
@@ -121,22 +115,23 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 			Print("+____________________________");			
 			#endif
 
-
 		}
-		else{
+		else
+		{
 			SCR_CharacterCommandHandlerComponent tempHandler = FindCommandHandler(GetCharacter());
-			float dyingDirection = cic.GetDie();
+			//We need the CharacterInputContext for the player
+			CharacterInputContext m_characterInputContext = m_playerCharacterControllerComponent.GetInputContext();
+			float dyingDirection = m_characterInputContext.GetDie();
 			
 			if (dyingDirection != 0.0)
 				tempHandler.StartCommand_Death(dyingDirection);
-
 
 		}
 				
 			
 
-		if (pc && m_CameraHandler && m_CameraHandler.IsInThirdPerson())
-			pc.m_bRetain3PV = true;
+		if (m_playerController && m_CameraHandler && m_CameraHandler.IsInThirdPerson())
+			m_playerController.m_bRetain3PV = true;
 		
 		// Insert the character and see if it held a weapon, if so, try adding that as well
 		
@@ -168,15 +163,23 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 		
 	}
 		
+	protected SCR_CharacterCommandHandlerComponent FindCommandHandler(IEntity pUser)
+	{
+		ChimeraCharacter character = GetCharacter();
+		if (!character)
+			return null;
+		
+		CharacterAnimationComponent animationComponent = character.GetCharacterController().GetAnimationComponent();
+		if (!animationComponent)
+			return null;
+		
+		return SCR_CharacterCommandHandlerComponent.Cast(animationComponent.FindComponent(SCR_CharacterCommandHandlerComponent));
+	}
 	
-	
-	float counter = 1;
 	 
-	void PushRagdollAround(){
+	void PushRagdollAround()
+	{
 		
-		
-		//todo make a time limit 
-
 		if(currentRagdoll.GetNumBones() > 0){
 			
 			//vector hitVector = {0.0 ,-0.8 , 0.0};
@@ -209,23 +212,14 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 			//Print("Regenareted ragdoll");
 
 			GetGame().GetCallqueue().Remove(PushRagdollAround);
-			counter = 0;		//not sure if it's needed but whatev
+			counter = 1;		//not sure if it's needed but whatev
 			return;
 		}
 		
 	
 	}
 	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
+
 	//Used in case of headshots
 	void FastRagdollDeath(){
 				
@@ -241,10 +235,8 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 				GetGame().GetCallqueue().Remove(FastRagdollDeath);
 				return;
 				}
-			else{
+			else
 				currentRagdoll.GetBoneRigidBody(0).SetVelocity(currentVelocity/6);
-
-			}
 			
 
 		}
