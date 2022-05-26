@@ -12,7 +12,33 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 	const string TAG_HITZONE_CHEST = "Chest";	
 	const string TAG_HITZONE_LARM = "LArm";	
 	const string TAG_HITZONE_RARM = "RArm";
+	const string TAG_HITZONE_HIPS = "Hips";
+
+	
+/*	
+	const float MASS_MAIN = 2.0;		// not sure about this
+	const float MASS_KNEE = 0.15;
+	const float MASS_LEG = 0.5;
+	const float MASS_SPINE = 1.0;
+	const float MASS_HEAD = 0.1; 
+	const float MASS_FOREARM = 0.07;
+	const float MASS_HIPS = 0.1;
+*/
+	
+	const float MASS_MAIN = 2.0;		// not sure about this
+	const float MASS_SPINE = 1.0;
+
+	
+	const float MASS_KNEE = 0.15;
+	const float MASS_LEG = 0.5;
+	const float MASS_HEAD = 0.1; 
+	const float MASS_FOREARM = 0.07;
+	const float MASS_HIPS = 0.1;
 			
+	
+	//todo make this a map 
+	
+	//map<float, string>  testMap;
 			
 	PhysicsRagdoll currentRagdoll;
 	GenericEntity waypointTestPao;
@@ -43,6 +69,20 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 		if (!m_AnimComponent)
 			m_AnimComponent = CharacterAnimationComponent.Cast(character.FindComponent(CharacterAnimationComponent));
 		#endif	
+		
+		
+		//testMap = new map<float, string>;
+		
+		//testMap.Insert(MASS_MAIN, TAG_HITZONE_HIPS);
+		//testMap.Insert(MASS_SPINE, TAG_HITZONE_SPINE);
+
+
+
+		
+		
+		
+
+		
 	}
 	
 
@@ -65,11 +105,7 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 
 		
 		if (m_playerCharacterControllerComponent != m_characterControllerComponent){
-			// Get original ragdoll and destroy it
-			PhysicsRagdoll.GetRagdoll(GetCharacter()).Destroy(1);
-			
-			// Recreate in
-			currentRagdoll = RegenPhysicsRagdoll();
+
 
 
 			//Get currentCharVelocity to interpolate with hitPosition later
@@ -89,21 +125,21 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 			
 			vector hitZoneColliders[4];
 			hitZone.TryGetColliderDescription(GetCharacter(), hitZoneColliderID, hitZoneColliders, null, null);
-			CharacterIdentityComponent identity = CharacterIdentityComponent.Cast(GetCharacter().FindComponent(CharacterIdentityComponent));
-			identity.SetCovered(hitZoneName, false);
+			
 			
 			//we need to figure out what vector we actually need.... now 
 			//Print(GetCharacter().GetTransform(hitZoneColliders));
 			//hitZone.GetTransform();
 			
-			
+			#ifdef DEBUG_PAO
 			Print(hitZoneColliders[1]);
 			Print(GetCharacter().VectorToParent(hitZoneColliders[1]));
 			Print("_____________________");
+			#endif
 			
 			//we should interpolate between the hitVector and the vector of the velocity of the player  
 			
-			vector finalHit;
+
 			
 
 			
@@ -121,34 +157,26 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 			
 			}
 			*/
+
 			
+			vector finalHit;
 			
-			// "Neck"
-			// LThigh  
-			// RThigh
-			// RForearm
-			// LCalf 
-			// Health 
-			// Chest
-			// Head
-			// Arm
-			// Hips
-			
+			//todo make it switch case this is so fucking awful
 			
 			if (hitZoneName == TAG_HITZONE_HEAD || hitZoneName == TAG_HITZONE_NECK || hitZoneName == TAG_HITZONE_LCALF || hitZoneName == TAG_HITZONE_RCALF || hitZoneName == TAG_HITZONE_LTHIGH || hitZoneName == TAG_HITZONE_RTHIGH)
 			{
 
 
-				Print(hitZoneName);
-				Print("Got hit somewhere else");
+				//Print(hitZoneName);
+				//Print("Got hit somewhere else");
 				finalHit = hitVector/15;
 
 
 				
 			}else{
 			
-				Print(hitZoneName);
-				Print("Generic Hit");
+				//Print(hitZoneName);
+				//Print("Generic Hit");
 				finalHit = hitVector/10;
 			
 			}
@@ -157,18 +185,80 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 			
 			
 			
+			// character vector perpend first 
+			
+			// get down vector from char 
+			
+			// dot product 
+			
+			// normalized and then length
 			
 			
-			for(int i = 0; i < currentRagdoll.GetNumBones(); i++){
+			vector characterOrigin = GetCharacter().GetOrigin();
+			float surfWorldY = GetGame().GetWorld().GetSurfaceY(characterOrigin[0], characterOrigin[2]);
 
+			//vector perpendCharacterOrigin = characterOrigin.Perpend();
 			
-				currentRagdoll.GetBoneRigidBody(i).ApplyForce("0 -2.81 0");		//dunno
+			//vector finalVector = characterOrigin + perpendCharacterOrigin;
+			
+			
+			Print(characterOrigin[1]);
+			Print(surfWorldY);
+			Print("_____________________");
+			
+			
+			
+			float gravityToApply;
+
+
+			if(Math.AbsFloat(characterOrigin[1] - surfWorldY) > 0.01){
+			
+				Print("too high difference");
+				//gravityToApply = -0.2;
+				
+				vector matrixTransform[4];
+				
+				
+				
+				GetCharacter().GetTransform(matrixTransform);
+				
+				
+				Print(matrixTransform);
+				matrixTransform[3] = Vector(matrixTransform[3][0], matrixTransform[3][1] + 0.15, matrixTransform[3][2]);
+				GetCharacter().SetTransform(matrixTransform);
+				
+				
+				Print(matrixTransform);
+			
 			}
 			
 			
+			// todo we need to wait some time before moving him cause he's gonna stretch like hell after the change in transform
+
 			
 			
 			
+			// Regen ragdoll
+			currentRagdoll = RegenPhysicsRagdoll();
+			
+			for(int i = 0; i < currentRagdoll.GetNumBones(); i++){
+
+
+				if (i == 9 || i == 10 || i == 11 || i == 12)
+				{
+					gravityToApply = -1.5;
+
+				}
+				else
+				{
+					gravityToApply = -4.81;			//this looks so shit my god
+				}
+				
+				currentRagdoll.GetBoneRigidBody(i).ApplyForce(Vector(0, gravityToApply, 0));		//dunno
+				//we need to know which rigidbody we're applying the force. we can't apply force to the feet, they will glitch out.
+			}
+			
+
 			currentRagdoll.GetBoneRigidBody(0).ApplyImpulseAt(hitPosition, finalHit);		//impact or velocity?
 
 			// Special case for headshots, basically "instakill"
@@ -274,25 +364,7 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 	
 	
 	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
+
 	 
 	void PushRagdollAround()
 	{
@@ -301,7 +373,23 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 		if(currentBones > 0){
 			
 			deltaTime = CalculateDeltaTime(false);
+			array<HitZone> hitZones = {};
+			array<SCR_CharacterHitZone> validHitZones = {};
+			m_characterDamageManagerComponent.GetPhysicalHitZones(hitZones);
+		
+			foreach(HitZone x : hitZones)
+			{
+			
+				// Is not already bleeding
+				if (x.GetDamageOverTime(EDamageType.BLEEDING) > 0)
+					continue;
+				
+				//Is character hz
+				SCR_CharacterHitZone characterHitZone = SCR_CharacterHitZone.Cast(x);
+				if (characterHitZone)
+					characterHitZone.SetSimulationState(true);	
 
+			}
 			
 			
 			//Print(currentRagdoll.GetBoneRigidBody(0).GetSimulationState());
@@ -317,14 +405,15 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 			//IEntitySource entitySource = SCR_BaseContainerTools.FindEntitySource(Resource.Load("{37578B1666981FCE}Prefabs/Characters/Core/Character_Base.et"));
 			//vector worldCoord = SCR_BaseContainerTools.GetWorldCoords(entitySource, feetPos);
 			
-			float valToScaleXZ = 0.15/counter;
+			float valToScaleXZ = 0.12/counter;			//15 is too heavy?
 			
+			// todo should check if we're applying the impulse to the arms so we can lower the force a bit.
 		
 			
 			for(int i = 0; i < currentBones; i++){
 				float x = Math.RandomFloatInclusive(-valToScaleXZ, valToScaleXZ);
 				//float y = Math.RandomFloatInclusive(-valToScaleY, 0.01);
-				float y = Math.Lerp(-0.000001, -0.00015, deltaTime);
+				float y = Math.Lerp(-0.0000001, -0.00015, deltaTime);
 
 				float z = Math.RandomFloatInclusive(-valToScaleXZ, valToScaleXZ);
 				//Print(y);
@@ -360,8 +449,11 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 	void FastRagdollDeath()
 	{
 				
+		
+		//SetSimulationState for ScriptedHitZone.... How do we get them?
+		
 		//todo make a time limit 
-		Print("FRD");
+		//Print("FRD");
 		deltaTime = CalculateDeltaTime(false);
 
 		if(currentRagdoll.GetNumBones() > 0)
@@ -381,7 +473,7 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 					
 				}
 				
-				Print(tempY);
+				//Print(tempY);
 				tempZ = 0;
 					
 				currentRagdoll.GetBoneRigidBody(i).ApplyImpulse(Vector(tempX, tempY, tempZ));
@@ -404,7 +496,12 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 			PhysicsRagdoll.GetRagdoll(GetCharacter()).Destroy(1);
 			
 			// Recreate it
-			PhysicsRagdoll.CreateRagdoll(GetCharacter(), "{5DD1A0EBAD2116CB}Prefabs/Characters/Core/character_modded.ragdoll", 1, EPhysicsLayerDefs.Ragdoll);
+			
+			int tempPhysicsLayerDefsProjectile = 3;		//this is a bug currently, EPhysicsLayerDefs.Projectile doesn't correspond to a real enum, so the layer mask won't work.
+			PhysicsRagdoll.CreateRagdoll(GetCharacter(), "{5DD1A0EBAD2116CB}Prefabs/Characters/Core/character_modded.ragdoll", 1, 3 | EPhysicsLayerDefs.Weapon |EPhysicsLayerDefs.Ragdoll |  EPhysicsLayerDefs.Character | EPhysicsLayerDefs.Vehicle);
+		
+		
+		
 			//PhysicsRagdoll.CreateRagdoll(GetCharacter(), "{BDAFE20F95BD19F0}Prefabs/Characters/Core/character_modded_encircle.ragdoll", 1, EPhysicsLayerDefs.Ragdoll);
 			PhysicsRagdoll ragdoll = PhysicsRagdoll.GetRagdoll(GetCharacter());
 			
@@ -438,6 +535,15 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 		return delta;
 		
 	
+	}
+	
+	
+	void HeadDismemberment(){
+				
+			
+			// We can use this for head dismemberment... not sure about other stuff
+			//CharacterIdentityComponent identity = CharacterIdentityComponent.Cast(GetCharacter().FindComponent(CharacterIdentityComponent));
+			//identity.SetCovered(hitZoneName, false);
 	}
 }
 

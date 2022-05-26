@@ -45,7 +45,53 @@ modded class SCR_CharacterDamageManagerComponent : ScriptedDamageManagerComponen
 	int GetLastColliderID(){
 		return lastColliderID;
 	}
-
 	
+/*	
+	override void UpdateBloodClothes()
+	{
+		//if (GetState() == EDamageState.DESTROYED)
+		//{
+		//	GetGame().GetCallqueue().Remove(UpdateBloodClothes);
+		//	return;
+		//}
 		
+		int bleedingHitZonesCount;
+		if (m_aBleedingHitZones)
+			bleedingHitZonesCount = m_aBleedingHitZones.Count();
+		
+		//if (bleedingHitZonesCount == 0)
+		//{
+		//	GetGame().GetCallqueue().Remove(UpdateBloodClothes);
+		//	return;
+		//}
+
+		SCR_CharacterHitZone characterHitZone;
+		for (int i; i < bleedingHitZonesCount; i++)
+		{
+			characterHitZone = SCR_CharacterHitZone.Cast(m_aBleedingHitZones[i]);
+			//Print(characterHitZone.
+			if (characterHitZone)
+			{
+				Print(characterHitZone.GetName());
+				characterHitZone.AddBloodToClothes();
+
+			}
+		}
+	}
+	
+	//-----------------------------------------------------------------------------------------------------------
+	override void UpdateBloodyFace()
+	{
+
+		if (!m_pHeadHitZone || GetState() == EDamageState.DESTROYED)
+		{
+			GetGame().GetCallqueue().Remove(UpdateBloodyFace);
+			return;
+		}
+		
+		m_pHeadHitZone.SetWoundedSubmesh(ShouldHaveBloodyFace());
+	}
+	
+	
+	*/	
 }
