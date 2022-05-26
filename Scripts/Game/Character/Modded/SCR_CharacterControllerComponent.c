@@ -238,16 +238,18 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 		if(currentRagdoll.GetNumBones() > 0)
 		{
 			deltaTime = BDA_Functions.CalculateDeltaTime(false);
-			float valToScaleXZ = 0.08/counter;			//15 is too heavy? Also fuck this counter why did I even use it
+			float valToScaleXZ = 0.2/counter;			//15 is too heavy? Also fuck this counter why did I even use it
+			Print(valToScaleXZ);
 			
 			for(int i = 0; i < currentRagdoll.GetNumBones(); i++)
 			{
 				float x = Math.RandomFloatInclusive(-valToScaleXZ, valToScaleXZ);
-				float y = Math.Lerp(-0.0000001, -0.00015, deltaTime);			//todo this really needs to get fixed
+				float y = Math.Lerp(-0.000001, -0.0015, deltaTime);			//todo this really needs to get fixed
 				float z = Math.RandomFloatInclusive(-valToScaleXZ, valToScaleXZ);
 				
 				vector hitVector = {x, y , z};		//z makes them spin 
 				currentRagdoll.GetBoneRigidBody(i).ApplyImpulse(hitVector);
+				counter += 0.05;
 			}
 		}
 		else
