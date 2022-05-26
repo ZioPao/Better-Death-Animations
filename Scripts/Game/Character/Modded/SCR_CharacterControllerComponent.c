@@ -210,8 +210,10 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 			
 			float gravityToApply;
 
-
-			if(Math.AbsFloat(characterOrigin[1] - surfWorldY) > 0.01){
+			float differenceY = Math.AbsFloat(characterOrigin[1] - surfWorldY);
+			float safetyY = 0.05;		
+			
+			if( differenceY >= 0.005){
 			
 				Print("too high difference");
 				//gravityToApply = -0.2;
@@ -224,7 +226,7 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 				
 				
 				Print(matrixTransform);
-				matrixTransform[3] = Vector(matrixTransform[3][0], matrixTransform[3][1] + 0.15, matrixTransform[3][2]);
+				matrixTransform[3] = Vector(matrixTransform[3][0], matrixTransform[3][1] + differenceY + safetyY, matrixTransform[3][2]);
 				GetCharacter().SetTransform(matrixTransform);
 				
 				
@@ -246,12 +248,12 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 
 				if (i == 9 || i == 10 || i == 11 || i == 12)
 				{
-					gravityToApply = -1.5;
+					gravityToApply = -0.3;
 
 				}
 				else
 				{
-					gravityToApply = -4.81;			//this looks so shit my god
+					gravityToApply = -9.81;			//this looks so shit my god
 				}
 				
 				currentRagdoll.GetBoneRigidBody(i).ApplyForce(Vector(0, gravityToApply, 0));		//dunno
@@ -405,7 +407,7 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 			//IEntitySource entitySource = SCR_BaseContainerTools.FindEntitySource(Resource.Load("{37578B1666981FCE}Prefabs/Characters/Core/Character_Base.et"));
 			//vector worldCoord = SCR_BaseContainerTools.GetWorldCoords(entitySource, feetPos);
 			
-			float valToScaleXZ = 0.12/counter;			//15 is too heavy?
+			float valToScaleXZ = 0.08/counter;			//15 is too heavy? Also fuck this counter why did I even use it
 			
 			// todo should check if we're applying the impulse to the arms so we can lower the force a bit.
 		
@@ -413,7 +415,7 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 			for(int i = 0; i < currentBones; i++){
 				float x = Math.RandomFloatInclusive(-valToScaleXZ, valToScaleXZ);
 				//float y = Math.RandomFloatInclusive(-valToScaleY, 0.01);
-				float y = Math.Lerp(-0.0000001, -0.00015, deltaTime);
+				float y = Math.Lerp(-0.0000001, -0.00015, deltaTime);			//todo this really needs to get fixed
 
 				float z = Math.RandomFloatInclusive(-valToScaleXZ, valToScaleXZ);
 				//Print(y);
