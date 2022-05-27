@@ -6,9 +6,11 @@
 /* 
 - Interpolation between movement speed and impact speed  
 - Better check for terrain, it doesn't work well when a char is on a prefab (like stairs or inside a building)
+- Limiter for valToScale, we need to set 3 values.
 - Lower gravity y 
 - More cleaning 
-
+- Stiffness to legs BEFORE they fall, then dampen it 
+- No hitzones when vehicles crash characters
 */
 
 
@@ -25,7 +27,7 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 	const string TAG_HITZONE_RARM = "RArm";
 	const string TAG_HITZONE_HIPS = "Hips";
 	
-	const float startDivider = 2000;
+	const float DIVIDER = 100;
 	float counter = 1;
 
 	PhysicsRagdoll currentRagdoll;
@@ -34,7 +36,6 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 	
 	float deltaTime;
 	ref BDA_Timer timer;
-	float divider;
 	
 	
 	override void OnInit(IEntity owner)
@@ -78,7 +79,8 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 
 		
 		// Players won't receive it for various reasons. At least for now.
-		if (m_playerCharacterControllerComponent != m_characterControllerComponent){
+		if (m_playerCharacterControllerComponent != m_characterControllerComponent)
+		{
 
 			// Get Last Hit
 			array<vector> lastHitArray = m_characterDamageManagerComponent.GetLastHitCoordinates();
@@ -87,41 +89,50 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 			vector hitPosition = {lastHitArray[0][0], lastHitArray[0][1], lastHitArray[0][2]};
 			
 			//if it's a headshot, then no rolling around 
+			
+			//fucking hell it stopped working for some reasons
 			HitZone hitZone = m_characterDamageManagerComponent.GetLastHitZone();
-			int hitZoneColliderID = m_characterDamageManagerComponent.GetLastColliderID();
-			string hitZoneName = hitZone.GetName();
-			
-			vector hitZoneColliders[4];
-			hitZone.TryGetColliderDescription(GetCharacter(), hitZoneColliderID, hitZoneColliders, null, null);
-	
-			vector hitToApply;			
-			//Print(hitZoneName);
-			switch(hitZoneName)
+			if (hitZone)
 			{
-
-				case TAG_HITZONE_LCALF:
-				case TAG_HITZONE_RCALF:
-				case TAG_HITZONE_LTHIGH:
-				case TAG_HITZONE_RTHIGH:
-				case TAG_HITZONE_HIPS:
+				int hitZoneColliderID = m_characterDamageManagerComponent.GetLastColliderID();
+				string hitZoneName = hitZone.GetName();
 				
+				vector hitZoneColliders[4];
+				hitZone.TryGetColliderDescription(GetCharacter(), hitZoneColliderID, hitZoneColliders, null, null);
+		
+				vector hitToApply;			
+				//Print(hitZoneName);
+				switch(hitZoneName)
 				{
-					hitToApply = hitVector/20;
-					break;
-				}
-				case TAG_HITZONE_HEAD:
-				case TAG_HITZONE_NECK:
-				{
-					hitToApply = hitVector/15;
-					break;
-				}
-				default:
-				{
-					hitToApply = hitVector/7;
-
-				}
-			
+	
+					case TAG_HITZONE_LCALF:
+					case TAG_HITZONE_RCALF:
+					case TAG_HITZONE_LTHIGH:
+					case TAG_HITZONE_RTHIGH:
+					case TAG_HITZONE_HIPS:
+					
+					{
+						hitToApply = hitVector/20;
+						break;
+					}
+					case TAG_HITZONE_HEAD:
+					case TAG_HITZONE_NECK:
+					{
+						hitToApply = hitVector/15;
+						break;
+					}
+					default:
+					{
+						hitToApply = hitVector/7;
+	
+					}
+				
+				}			
 			}
+			else{
+				Print("No hitzone");
+			}
+
 
 			
 			/* Preventing feet to clip in the ground */
@@ -238,8 +249,18 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 	/* Wrappers to wait before starting the real functions*/
 	
 	void WaitSecondaryScriptPushRagdollAround(){
-	
-		GetGame().GetCallqueue().CallLater(PushRagdollAround, 10, true); // in milliseconds
+		
+		//Right when we start, we're gonna start from this value to scale on
+		float startValue = 0.00005;
+		// Middle Point 
+		float middleValue = 0.0055;  
+		//When it's gonna stop to change 
+		float endValue = 0.0;		
+		
+		//how much we're gonna increment, make it a little random. This is gonna be a seed basically 
+		float step = 0.00005;
+		
+		GetGame().GetCallqueue().CallLater(PushRagdollAround, 10, true, startValue, middleValue, endValue, step); // in milliseconds
 	}
 	
 	
@@ -250,14 +271,91 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 	
 	
 	
+	bool hasReachedMiddleValue = false;		//should be "local" afaik but i'm not sure.
+	float currentValToScale = 0.0;
+	
 	/* Real function to make the ragdolls move around */
-	void PushRagdollAround()
+	void PushRagdollAround(float startValue, float middleValue, float endValue, float step)
 	{
+		
+		
+		deltaTime = timer.UpdateDeltaTime();
+		
+		float timeStep = Math.AbsFloat(step/deltaTime);
+		
+		if (timeStep < step)
+			timeStep = step;	//restore it
+		
 
+		if (currentRagdoll.GetNumBones() > 0)
+		{
+			
+			if (currentValToScale > middleValue || hasReachedMiddleValue)
+			{
+				hasReachedMiddleValue=true;
+				//decrease until endValue
+				
+
+				if (currentValToScale < endValue)
+				{
+					Print("Keeping end value");
+					currentValToScale = endValue;		//don't change it. 
+					Print(currentValToScale);
+	
+				}
+				else
+				{
+					Print("Decreasing");
+					currentValToScale -= timeStep;
+					Print(currentValToScale);
+
+				}
+			}
+			else
+			{
+				Print("Increasing");
+				//Increase till middle value 
+				currentValToScale += timeStep;
+				Print(currentValToScale);
+			}
+			
+			Print("___________________________________________");
+			
+			
+			float x = Math.RandomFloatInclusive(-currentValToScale, currentValToScale);
+			
+			
+			
+			float y = -deltaTime/DIVIDER;		
+			if (y < -0.03)
+				y = -0.03;
+			
+			float z = Math.RandomFloatInclusive(-currentValToScale, currentValToScale);
+			for(int i = 0; i < currentRagdoll.GetNumBones(); i++)
+			{
+				vector hitVector = {x, y , z};		//z makes them spin 
+				currentRagdoll.GetBoneRigidBody(i).ApplyImpulse(hitVector);
+			}
+
+	
+
+			
+		}
+		else
+		{
+			GetGame().GetCallqueue().Remove(PushRagdollAround);
+			counter = 1;
+			return;
+			
+			
+		}
+		
+		
+		
+		/*
 		
 		// we're gonna use a parabola to simulate all the phases, stupor, shock, and then death. 
 		divider = startDivider;
-		
 		
 		if(currentRagdoll.GetNumBones() > 0)
 		{
@@ -301,6 +399,8 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 			counter = 1;
 			return;
 		}
+		
+		*/
 	}
 	
 	/* Used when charcter get headshotted*/

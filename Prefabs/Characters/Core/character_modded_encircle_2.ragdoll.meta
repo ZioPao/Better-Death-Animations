@@ -1,0 +1,15 @@
+MetaFileClass {
+ Name "{E80E7FF9A6480F9C}Prefabs/Characters/Core/character_modded_encircle_2.ragdoll"
+ Configurations {
+  PhysicsRagdollResourceClass PC {
+  }
+  PhysicsRagdollResourceClass XBOX_ONE : PC {
+  }
+  PhysicsRagdollResourceClass XBOX_SERIES : PC {
+  }
+  PhysicsRagdollResourceClass PS4 : PC {
+  }
+  PhysicsRagdollResourceClass HEADLESS : PC {
+  }
+ }
+}

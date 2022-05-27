@@ -26,6 +26,17 @@ GenericWorldPPEffect {
   }
  }
 }
+SCR_AIWorld {
+ coords 103.488 11.964 220.993
+ Formations {
+  AIFormationDefinition "{59760479111A7700}" {
+   Name "TEST"
+   Offsets {
+    0 0 0
+   }
+  }
+ }
+}
 GenericWorldLightEntity {
  coords 70.597 0 37.329
  SpecularMul 0.109
@@ -48,9 +59,6 @@ TimeAndWeatherManagerEntity {
  "Initial State" 0.584
  Year 2045
 }
-AIAgent {
- coords 216.737 11.877 181.066
-}
 CameraBase CameraBase1 {
  coords 70.647 0 37.569
 }
@@ -67,6 +75,16 @@ EnvironmentProbeEntity {
 }
 SCR_PlayerSpawnPoint {
  coords 78.901 11.859 37.132
+}
+SCR_TerrainMeshEntity {
+ coords 220.944 11.814 178.411
+ Flags 1027
+ m_iResolution 8
+ m_fHeightCoef 0.035
+ m_Material "{A47C5D03ADB1464C}Common/Materials/Mirror_generic.emat"
+}
+Tree {
+ coords 63.451 12.649 163.741
 }
 GenericEntity : "{13B4C532861B9DE2}Prefabs/Props/Commercial/BeerKegMetal_01_big.et" {
  coords 80.383 30.48 45.258
