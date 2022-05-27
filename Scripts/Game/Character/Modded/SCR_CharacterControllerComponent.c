@@ -27,8 +27,7 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 	const string TAG_HITZONE_RARM = "RArm";
 	const string TAG_HITZONE_HIPS = "Hips";
 	
-	const float DIVIDER = 100;
-	float counter = 1;
+	const float DIVIDER = 50;
 
 	PhysicsRagdoll currentRagdoll;
 	CharacterControllerComponent m_characterControllerComponent;
@@ -90,10 +89,9 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 			
 			//if it's a headshot, then no rolling around 
 			
-			//fucking hell it stopped working for some reasons
+			//fucking hell it stopped working for some reasons, vehicles no longer work.
 			HitZone hitZone = m_characterDamageManagerComponent.GetLastHitZone();
-			if (hitZone)
-			{
+
 				int hitZoneColliderID = m_characterDamageManagerComponent.GetLastColliderID();
 				string hitZoneName = hitZone.GetName();
 				
@@ -128,10 +126,7 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 					}
 				
 				}			
-			}
-			else{
-				Print("No hitzone");
-			}
+
 
 
 			
@@ -251,14 +246,14 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 	void WaitSecondaryScriptPushRagdollAround(){
 		
 		//Right when we start, we're gonna start from this value to scale on
-		float startValue = 0.00005;
+		float startValue = 0.0005;
 		// Middle Point 
-		float middleValue = 0.0055;  
+		float middleValue = 0.03;  
 		//When it's gonna stop to change 
 		float endValue = 0.0;		
 		
 		//how much we're gonna increment, make it a little random. This is gonna be a seed basically 
-		float step = 0.00005;
+		float step = 0.0002;
 		
 		GetGame().GetCallqueue().CallLater(PushRagdollAround, 10, true, startValue, middleValue, endValue, step); // in milliseconds
 	}
@@ -266,7 +261,7 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 	
 	void WaitSecondaryScriptFastRagdollDeath(){
 	
-		GetGame().GetCallqueue().CallLater(FastRagdollDeath, 50, true); // in milliseconds
+		GetGame().GetCallqueue().CallLater(FastRagdollDeath, 10, true); // in milliseconds
 	}
 	
 	
@@ -298,25 +293,25 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 
 				if (currentValToScale < endValue)
 				{
-					Print("Keeping end value");
+					//Print("Keeping end value");
 					currentValToScale = endValue;		//don't change it. 
-					Print(currentValToScale);
+					//Print(currentValToScale);
 	
 				}
 				else
 				{
-					Print("Decreasing");
+					//Print("Decreasing");
 					currentValToScale -= timeStep;
-					Print(currentValToScale);
+					//Print(currentValToScale);
 
 				}
 			}
 			else
 			{
-				Print("Increasing");
+				//Print("Increasing");
 				//Increase till middle value 
 				currentValToScale += timeStep;
-				Print(currentValToScale);
+				//Print(currentValToScale);
 			}
 			
 			Print("___________________________________________");
@@ -324,16 +319,17 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 			
 			float x = Math.RandomFloatInclusive(-currentValToScale, currentValToScale);
 			
+			float y = Math.Lerp(0.1, 0.2, deltaTime)/DIVIDER;
+			
+			if (y >= 0.2)
+				y = 0.2;
 			
 			
-			float y = -deltaTime/DIVIDER;		
-			if (y < -0.03)
-				y = -0.03;
 			
 			float z = Math.RandomFloatInclusive(-currentValToScale, currentValToScale);
 			for(int i = 0; i < currentRagdoll.GetNumBones(); i++)
 			{
-				vector hitVector = {x, y , z};		//z makes them spin 
+				vector hitVector = {x, -y , z};		//z makes them spin 
 				currentRagdoll.GetBoneRigidBody(i).ApplyImpulse(hitVector);
 			}
 
@@ -344,63 +340,11 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 		else
 		{
 			GetGame().GetCallqueue().Remove(PushRagdollAround);
-			counter = 1;
 			return;
 			
 			
 		}
 		
-		
-		
-		/*
-		
-		// we're gonna use a parabola to simulate all the phases, stupor, shock, and then death. 
-		divider = startDivider;
-		
-		if(currentRagdoll.GetNumBones() > 0)
-		{
-			deltaTime = timer.UpdateDeltaTime();
-			float valToScale = Math.Lerp(0,2, deltaTime)/divider;
-			float valToScaleSecond = Math.Lerp(-100, 100, deltaTime);
-			float valToScaleXZ = 0.12/counter;			//15 is too heavy? Also fuck this counter why did I even use it
-			
-			
-			
-			for(int i = 0; i < currentRagdoll.GetNumBones(); i++)
-			{
-				
-				divider += deltaTime;
-				
-				
-				
-				float x = Math.RandomFloatInclusive(-valToScaleXZ, valToScaleXZ);
-				float y = -valToScale;
-				float z = Math.RandomFloatInclusive(-valToScaleXZ, valToScaleXZ);
-
-				//float y = -Math.Lerp(0,1,deltaTime)/divider;
-				
-				divider += deltaTime;	//Increment it with time
-				//float y = Math.Lerp(-0.001, -0.015, deltaTime);			//todo this really needs to get fixed
-				
-				
-				//Print(valToScaleSecond);
-				//vector parabola = BDA_Functions_Generic.GenerateParabola(-5.0, 5.0, 10, deltaTime);
-				//float y = parabola[1];		//not sure about this.
-
-				
-				vector hitVector = {x, y , z};		//z makes them spin 
-				currentRagdoll.GetBoneRigidBody(i).ApplyImpulse(hitVector);
-				counter += 0.0045;
-			}
-		}
-		else
-		{
-			GetGame().GetCallqueue().Remove(PushRagdollAround);
-			counter = 1;
-			return;
-		}
-		
-		*/
 	}
 	
 	/* Used when charcter get headshotted*/
