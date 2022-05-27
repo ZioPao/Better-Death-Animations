@@ -445,17 +445,7 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 
 
 			
-			// todo make these like external or something 
-			
-			float yDuration = 1.0;		//just for test
-			float minY = 0.25;			//to get a first stronger hit
-			float maxY = 0.75;
-			float y;
-			if (deltaTime < yDuration)
-				y = Math.Lerp(minY, maxY, deltaTime/yDuration);
-			else
-				y = maxY;
-			
+
 
 
 			
@@ -466,7 +456,11 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 				//Random for every loop.
 				float x = Math.RandomFloatInclusive(-currentValToScale, currentValToScale);
 				float z = Math.RandomFloatInclusive(-currentValToScale, currentValToScale);
+							// todo make these like external or something 
 				
+				
+				y = BDA_Functions_Generic.Lerp(0.25, 075, 1.0, deltaTime);
+
 				switch(i)
 				{
 					case CharacterBones.LARM:
@@ -476,8 +470,33 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 					case CharacterBones.HEAD:
 					{
 						//hitVector = {x/2, -y + 0.08 , z/2};		//arms are a special case, let's just help them a bit poor things
-						hitVector = {x/100, -y/25, z/100};
-						//hitVector = {0, 0, 0};	
+						
+						
+						
+						
+						
+						float testDividerNeg = 500 - (deltaTime * 50);
+						
+						if (testDividerNeg < 0)
+							testDividerNeg = 1;
+						
+						float testDividerPos = 1000 + (deltaTime * 150);
+
+						
+						float valToScaleY = BDA_Functions_Generic.Lerp(1, 3, 15, deltaTime);
+						
+						y =  Math.RandomFloatInclusive(-valToScaleY/testDividerNeg , valToScaleY/testDividerPos);
+
+						//float tempY = Math.RandomFloatInclusive(-0.000001, 0.0002);
+
+						Print(testDividerNeg);
+						Print(testDividerPos);
+						Print(valToScaleY);
+						
+						Print("___________");
+						
+						hitVector = {x/200, y/200, z/200};
+						//hitVector = {0, 0, 0};	S
 						
 						
 						break;
@@ -499,6 +518,7 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 					case CharacterBones.RTHIGH: 
 					{
 						hitVector = {0, 0, 0};	
+						break;
 					}
 					default:
 					{
@@ -532,14 +552,6 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 	
 	
 	int counterLoopFastRagdollDeath = 0;
-	
-	
-	
-	
-	
-	
-	
-	
 	/* Used when charcter get headshotted*/
 	void FastRagdollDeath()
 	{
@@ -590,15 +602,15 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 					z = 0;
 				}
 				
-				float yDuration = 1;		//just for test
-				float minY = 0.0001;			//to get a first stronger hit
-				float maxY = 0.02;
-				if (deltaTime < yDuration)
-					y = Math.Lerp(minY, maxY, deltaTime/yDuration);
-				else
-					y = maxY;
-			
+				
+				
+				y = BDA_Functions_Generic.Lerp(0.0001, 0.02, 1, deltaTime);
 
+				
+				if (i == CharacterBones.LFOREARM || i == CharacterBones.RFOREARM)
+					y -= 0.005;
+				
+	
 					
 				currentRagdoll.GetBoneRigidBody(i).ApplyImpulse(Vector(x, -y, z));
 			}
@@ -663,3 +675,35 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 	
 }
 
+
+/*
+
+//mixed left hand
+		bone "leftArm", true, 0.1
+		{
+			sixdofjoint "0 0 20", -30, 10, -40, 20, -10, 0, 4, 225
+	
+
+			bone "LeftForeArm", true, 0.07
+			{
+				sixdofjoint "20 0 0", -30, 10, -40, 20, -10, 0, 50, 15
+
+				bone "LeftHandMiddle1", false
+			}
+		}
+
+		//mixed right hand
+		bone "RightArm", true, 0.1
+		{
+			// x is the value we most need. manages forward motion for the right arm
+			sixdofjoint "0 0 10", 30, -10, 0, 0, 0,0, 50 , 225
+
+			bone "RightForeArm", true, 0.07
+			{
+				sixdofjoint "0 0 20", -30, 10, -40, 20, 0, 0, 50, 15
+
+				bone "RightHandMiddle1", false
+			}
+		}
+
+*/

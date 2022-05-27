@@ -50,6 +50,22 @@ class BDA_Functions_Generic
 		
 			return ragdoll;
 	}
+	
+	
+	
+	static float Lerp(float min, float max, float duration, float deltaTime)
+	{
+		
+		if (deltaTime < duration)
+			return Math.Lerp(min, max, deltaTime/duration);
+		else 
+			return max;
+
+	}
+	
+	
+	
+	
 }
 
 
