@@ -90,15 +90,16 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 			//if it's a headshot, then no rolling around 
 			
 			//fucking hell it stopped working for some reasons, vehicles no longer work.
+			
 			HitZone hitZone = m_characterDamageManagerComponent.GetLastHitZone();
+			vector hitToApply;		
+			string hitZoneName;
 
+			if (hitZone)
+			{
 				int hitZoneColliderID = m_characterDamageManagerComponent.GetLastColliderID();
-				string hitZoneName = hitZone.GetName();
-				
-				vector hitZoneColliders[4];
-				hitZone.TryGetColliderDescription(GetCharacter(), hitZoneColliderID, hitZoneColliders, null, null);
-		
-				vector hitToApply;			
+				hitZoneName = hitZone.GetName();
+
 				//Print(hitZoneName);
 				switch(hitZoneName)
 				{
@@ -125,7 +126,16 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 	
 					}
 				
-				}			
+				}	
+			}
+			else
+			{
+				hitToApply = hitVector/10;		//no idea 
+				hitZoneName = "";
+			}
+			
+				
+		
 
 
 
@@ -314,7 +324,7 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 				//Print(currentValToScale);
 			}
 			
-			Print("___________________________________________");
+			//Print("___________________________________________");
 			
 			
 			float x = Math.RandomFloatInclusive(-currentValToScale, currentValToScale);

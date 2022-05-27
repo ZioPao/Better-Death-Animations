@@ -15,8 +15,13 @@ GenericWorldEntity world {
 GenericTerrainEntity Terrain {
  coords 0 11.859 0
 }
-AIWorld {
- coords 217.787 11.977 179.672
+$grp AIWorld {
+ {
+  coords 217.787 11.977 179.672
+ }
+ {
+  coords 700.201 11.095 225.473
+ }
 }
 GenericWorldPPEffect {
  coords 33.715 11.86 26.232
@@ -76,15 +81,29 @@ EnvironmentProbeEntity {
 SCR_PlayerSpawnPoint {
  coords 78.901 11.859 37.132
 }
-SCR_TerrainMeshEntity {
- coords 220.944 11.814 178.411
- Flags 1027
- m_iResolution 8
- m_fHeightCoef 0.035
- m_Material "{A47C5D03ADB1464C}Common/Materials/Mirror_generic.emat"
+$grp SCR_TerrainMeshEntity {
+ {
+  coords 220.944 11.814 178.411
+  Flags 1027
+  m_iResolution 8
+  m_fHeightCoef 0.035
+  m_Material "{A47C5D03ADB1464C}Common/Materials/Mirror_generic.emat"
+ }
+ {
+  coords 703.358 10.932 224.212
+  Flags 1027
+  m_iResolution 8
+  m_fHeightCoef 0.035
+  m_Material "{A47C5D03ADB1464C}Common/Materials/Mirror_generic.emat"
+ }
 }
-Tree {
- coords 63.451 12.649 163.741
+$grp Tree {
+ {
+  coords 63.451 12.649 163.741
+ }
+ {
+  coords 545.865 11.767 209.542
+ }
 }
 GenericEntity : "{13B4C532861B9DE2}Prefabs/Props/Commercial/BeerKegMetal_01_big.et" {
  coords 80.383 30.48 45.258
@@ -272,10 +291,197 @@ $grp SCR_ChimeraCharacter : "{631158F6898738A4}Prefabs/Characters/Factions/OPFOR
   angleY -5.932
   angleZ 5.095
  }
+ {
+  coords 688.488 13.463 218.896
+  angleX 2.126
+  angleY -5.932
+  angleZ 5.095
+ }
+ {
+  coords 584.738 21.684 130.687
+  angleZ 32.02
+ }
+ {
+  coords 586.905 21.514 133.501
+  angleZ 32.02
+ }
+ {
+  coords 580.634 23.622 125.372
+  angleZ 32.02
+ }
+ {
+  coords 580.546 23.676 126.778
+  angleZ 32.02
+ }
+ {
+  coords 580.683 23.591 128.354
+  angleZ 32.02
+ }
+ {
+  coords 580.699 23.581 128.734
+  angleZ 32.02
+ }
+ {
+  coords 580.935 23.433 129.678
+  angleZ 32.02
+ }
+ {
+  coords 581.094 23.334 130.846
+  angleZ 32.02
+ }
+ {
+  coords 581.509 23.074 132.116
+  angleZ 32.02
+ }
+ {
+  coords 582.166 22.663 132.828
+  angleZ 32.02
+ }
+ {
+  coords 583.142 22.053 133.804
+  angleZ 32.02
+ }
+ {
+  coords 583.389 21.898 133.994
+  angleZ 32.02
+ }
+ {
+  coords 584.552 21.171 133.683
+  angleZ 32.02
+ }
+ {
+  coords 568.758 12.643 185.525
+  angleZ 32.02
+ }
+ {
+  coords 566.591 12.813 182.711
+  angleZ 32.02
+ }
+ {
+  coords 566.405 12.3 185.707
+  angleZ 32.02
+ }
+ {
+  coords 565.242 13.027 186.018
+  angleZ 32.02
+ }
+ {
+  coords 564.995 13.182 185.828
+  angleZ 32.02
+ }
+ {
+  coords 564.019 13.792 184.852
+  angleZ 32.02
+ }
+ {
+  coords 563.362 14.203 184.14
+  angleZ 32.02
+ }
+ {
+  coords 562.947 14.463 182.87
+  angleZ 32.02
+ }
+ {
+  coords 562.788 14.562 181.702
+  angleZ 32.02
+ }
+ {
+  coords 562.552 14.71 180.758
+  angleZ 32.02
+ }
+ {
+  coords 562.536 14.72 180.378
+  angleZ 32.02
+ }
+ {
+  coords 562.399 14.805 178.802
+  angleZ 32.02
+ }
+ {
+  coords 562.487 14.751 177.396
+  angleZ 32.02
+ }
+ {
+  coords 690.199 14.398 221.872
+  angleX 2.126
+  angleY -5.932
+  angleZ 5.095
+ }
+ {
+  coords 684.524 13.135 213.151
+  angleX 2.126
+  angleY -5.932
+  angleZ 5.095
+ }
+ {
+  coords 684.277 13.197 214.538
+  angleX 2.126
+  angleY -5.932
+  angleZ 5.095
+ }
+ {
+  coords 684.273 13.24 216.121
+  angleX 2.126
+  angleY -5.932
+  angleZ 5.095
+ }
+ {
+  coords 684.253 13.253 216.5
+  angleX 2.126
+  angleY -5.932
+  angleZ 5.095
+ }
+ {
+  coords 684.431 13.264 217.469
+  angleX 2.126
+  angleY -5.932
+  angleZ 5.095
+ }
+ {
+  coords 684.496 13.291 218.65
+  angleX 2.126
+  angleY -5.932
+  angleZ 5.095
+ }
+ {
+  coords 684.85 13.294 219.965
+  angleX 2.126
+  angleY -5.932
+  angleZ 5.095
+ }
+ {
+  coords 685.543 13.252 220.753
+  angleX 2.126
+  angleY -5.932
+  angleZ 5.095
+ }
+ {
+  coords 686.584 13.186 221.847
+  angleX 2.126
+  angleY -5.932
+  angleZ 5.095
+ }
+ {
+  coords 686.852 13.167 222.067
+  angleX 2.126
+  angleY -5.932
+  angleZ 5.095
+ }
+ {
+  coords 688.244 13.033 221.903
+  angleX 2.126
+  angleY -5.932
+  angleZ 5.095
+ }
 }
 GenericEntity : "{E63CB63E8DBC316E}Prefabs/Props/Civilian/Heater_01/Heater_01_base.et" {
  coords 81.023 31.528 46.66
 }
-Vehicle M151A1 : "{F649585ABB3706C4}Prefabs/Vehicles/Wheeled/M151A2/M151A2.et" {
- coords 35.295 11.86 16.139
+$grp Vehicle : "{F649585ABB3706C4}Prefabs/Vehicles/Wheeled/M151A2/M151A2.et" {
+ M151A1 {
+  coords 35.295 11.86 16.139
+ }
+ M151A2 {
+  coords 678.575 11.86 228.508
+ }
 }
