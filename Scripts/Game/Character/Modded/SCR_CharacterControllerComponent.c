@@ -526,12 +526,28 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 		
 	}
 	
+	
+	
+	
+	
+	
+	int counterLoopFastRagdollDeath = 0;
+	
+	
+	
+	
+	
+	
+	
+	
 	/* Used when charcter get headshotted*/
 	void FastRagdollDeath()
 	{
 		
 		deltaTime = timer.UpdateDeltaTime();
+		
 
+		
 		if(currentRagdoll.GetNumBones() > 0)
 		{
 			currentRagdoll.GetBoneRigidBody(CharacterBones.SPINE).SetDamping(DEFAULT_MAIN_DAMPING, DEFAULT_MAIN_DAMPING);
@@ -542,39 +558,49 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 			
 			
 			//pls dont be broken
+			
+			
+			// i fucking hate myself.
+			
+			// ok so this stinks, it was a mistake but it worked. spine has an higher mass, it works better than a lower 
+			// mass like the original.... So I should really refactor this crap.
 			currentRagdoll.GetBoneRigidBody(CharacterBones.SPINE).SetMass(originalMasses[CharacterBones.SPINE]);
-			currentRagdoll.GetBoneRigidBody(CharacterBones.LCALF).SetMass(originalMasses[CharacterBones.LCALF]);
-			currentRagdoll.GetBoneRigidBody(CharacterBones.RCALF).SetMass(originalMasses[CharacterBones.RCALF]);
-			currentRagdoll.GetBoneRigidBody(CharacterBones.RFOOT).SetMass(originalMasses[CharacterBones.RFOOT]);
-			currentRagdoll.GetBoneRigidBody(CharacterBones.LFOOT).SetMass(originalMasses[CharacterBones.LFOOT]);
-		
-			vector currentVelocity;
+			currentRagdoll.GetBoneRigidBody(CharacterBones.LCALF).SetMass(originalMasses[CharacterBones.SPINE]);
+			currentRagdoll.GetBoneRigidBody(CharacterBones.RCALF).SetMass(originalMasses[CharacterBones.SPINE]);
+			currentRagdoll.GetBoneRigidBody(CharacterBones.RFOOT).SetMass(originalMasses[CharacterBones.SPINE]);
+			currentRagdoll.GetBoneRigidBody(CharacterBones.LFOOT).SetMass(originalMasses[CharacterBones.SPINE]);
+	
+			float x;
+			float y;
+			float z;
 			
 			
-
-			
-			
-			
-			float tempX
-			float tempY;
-			float tempZ;
 			for(int i = 0; i < currentRagdoll.GetNumBones(); i++)
 			{
-				tempX = 0;
-			
+				
+				
+				if (counterLoopFastRagdollDeath < 10)
+				{
+					x = Math.RandomFloatInclusive(-0.1, 0.1);
+					z = Math.RandomFloatInclusive(-0.1, 0.1);
+				}
+				else
+				{
+					x = 0;
+					z = 0;
+				}
+				
 				float yDuration = 1;		//just for test
-				float minY = 0.01;			//to get a first stronger hit
-				float maxY = 0.08;
-				float y;
+				float minY = 0.0001;			//to get a first stronger hit
+				float maxY = 0.02;
 				if (deltaTime < yDuration)
 					y = Math.Lerp(minY, maxY, deltaTime/yDuration);
 				else
 					y = maxY;
 			
 
-				tempZ = 0;
 					
-				currentRagdoll.GetBoneRigidBody(i).ApplyImpulse(Vector(tempX, -y, tempZ));
+				currentRagdoll.GetBoneRigidBody(i).ApplyImpulse(Vector(x, -y, z));
 			}
 		}
 		else
@@ -582,6 +608,9 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 			GetGame().GetCallqueue().Remove(FastRagdollDeath);
 			return;
 		}
+		
+		
+		counterLoopFastRagdollDeath++;
 	}
 	
 	
