@@ -118,7 +118,7 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 				int hitZoneColliderID = m_characterDamageManagerComponent.GetLastColliderID();
 				hitZoneName = hitZone.GetName();
 
-				//Print(hitZoneName);
+				Print(hitZoneName);
 				switch(hitZoneName)
 				{
 	
@@ -135,12 +135,18 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 					case TAG_HITZONE_HEAD:
 					case TAG_HITZONE_NECK:
 					{
-						hitToApply = hitVector/4;
+
+						hitToApply = hitVector/15;
+						break;
+					}
+					case TAG_HITZONE_CHEST:
+					{
+						hitToApply = hitVector/7;
 						break;
 					}
 					default:
 					{
-						hitToApply = hitVector/5;
+						hitToApply = hitVector/8;
 	
 					}
 				
@@ -152,7 +158,7 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 				hitZoneName = "";
 			}
 			
-				
+			Print(hitToApply);
 		
 
 
@@ -165,8 +171,8 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 			
 			// from the char right down to check if it's a prefab\building or something like that. if it is... then whatever, don't do shit.
 			
-			// todo maybe a ray is better?
-			GetGame().GetWorld().QueryEntitiesBySphere(GetCharacter().GetOrigin(), 0.1, TestPosition, null, EQueryEntitiesFlags.STATIC | EQueryEntitiesFlags.WITH_OBJECT);
+			// todo maybe a ray is better? It is but it doesn't work thanks bohemia
+			GetGame().GetWorld().QueryEntitiesBySphere(GetCharacter().GetOrigin(), 0.1, TestPosition, null, EQueryEntitiesFlags.STATIC);
 			if (isCharacterInAcceptablePosition)
 			{
 				vector characterOrigin = GetCharacter().GetOrigin();
@@ -203,7 +209,7 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 			
 			
 			
-			float gravityToApply;
+			float gravityToApply = 0;
 			originalMasses = new array<float>;
 			
 			for(int i = 0; i < currentRagdoll.GetNumBones(); i++)
@@ -213,15 +219,24 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 				
 				originalMasses.Insert(currentRagdoll.GetBoneRigidBody(i).GetMass());
 
-				//we need to know which rigidbody we're applying the force. we can't apply force to the feet, they will glitch out.
-				if (i == CharacterBones.LCALF || i == CharacterBones.RCALF || i == CharacterBones.RFOOT || i == CharacterBones.LFOOT)
+				
+				switch(i)
 				{
-					currentRagdoll.GetBoneRigidBody(i).SetDamping(MODIFIED_SECONDARY_DAMPING ,MODIFIED_SECONDARY_DAMPING);
-					currentRagdoll.GetBoneRigidBody(i).SetMass(10);
-
+					case CharacterBones.LCALF:
+					case CharacterBones.RCALF:
+					case CharacterBones.RFOOT:
+					case CharacterBones.LFOOT:
+					{
+						currentRagdoll.GetBoneRigidBody(i).SetDamping(MODIFIED_SECONDARY_DAMPING ,MODIFIED_SECONDARY_DAMPING);
+						currentRagdoll.GetBoneRigidBody(i).SetMass(10);
+						break;
+					}
+					default:
+					{
+						gravityToApply = -9.81;		
+					}
+				
 				}
-				else
-					gravityToApply = -9.81;		
 				
 
 				currentRagdoll.GetBoneRigidBody(i).ApplyForce(Vector(0, gravityToApply, 0));		
@@ -332,7 +347,7 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 	}
 	
 	
-	float dampeningStep = 0.08;
+	float dampingStep = 0.08;
 
 	bool hasReachedMiddleValue = false;		//should be "local" afaik but i'm not sure.
 	float currentValToScale = 0.0;
@@ -360,22 +375,22 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 			else
 				timeStep = step;
 
-			float dampeningToSet;
-			float dampeningDuration = 0.2;
+			float dampintToSet;
+			float dampingDuration = 0.2;
 			
-			if (deltaTime < dampeningDuration)
+			if (deltaTime < dampingDuration)
 			{
 				
-				// dampening to start on should be
+				// damping to start on should be
 				
 				//todo no easy way to get original dampening ffs
-				dampeningToSet = MODIFIED_SECONDARY_DAMPING - Math.Lerp(0.0, DEFAULT_SECONDARY_DAMPING_SUB, deltaTime);
+				dampintToSet = MODIFIED_SECONDARY_DAMPING - Math.Lerp(0.0, DEFAULT_SECONDARY_DAMPING_SUB, deltaTime);
 
-				//currentRagdoll.GetBoneRigidBody(1).SetDamping(dampeningToSet, dampeningToSet);
-				currentRagdoll.GetBoneRigidBody(CharacterBones.LCALF).SetDamping(dampeningToSet, dampeningToSet);
-				currentRagdoll.GetBoneRigidBody(CharacterBones.RCALF).SetDamping(dampeningToSet, dampeningToSet);
-				currentRagdoll.GetBoneRigidBody(CharacterBones.RFOOT).SetDamping(dampeningToSet, dampeningToSet);
-				currentRagdoll.GetBoneRigidBody(CharacterBones.LFOOT).SetDamping(dampeningToSet, dampeningToSet);
+				//currentRagdoll.GetBoneRigidBody(1).SetDamping(dampintToSet, dampintToSet);
+				currentRagdoll.GetBoneRigidBody(CharacterBones.LCALF).SetDamping(dampintToSet, dampintToSet);
+				currentRagdoll.GetBoneRigidBody(CharacterBones.RCALF).SetDamping(dampintToSet, dampintToSet);
+				currentRagdoll.GetBoneRigidBody(CharacterBones.RFOOT).SetDamping(dampintToSet, dampintToSet);
+				currentRagdoll.GetBoneRigidBody(CharacterBones.LFOOT).SetDamping(dampintToSet, dampintToSet);
 			
 			}
 			
@@ -430,11 +445,11 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 
 
 			
-			//should add a check for deltaTime = 0 just in case
+			// todo make these like external or something 
 			
 			float yDuration = 1.0;		//just for test
 			float minY = 0.25;			//to get a first stronger hit
-			float maxY = 0.6;
+			float maxY = 0.75;
 			float y;
 			if (deltaTime < yDuration)
 				y = Math.Lerp(minY, maxY, deltaTime/yDuration);
@@ -461,7 +476,7 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 					case CharacterBones.HEAD:
 					{
 						//hitVector = {x/2, -y + 0.08 , z/2};		//arms are a special case, let's just help them a bit poor things
-						hitVector = {x/100, -y/20, z/100};
+						hitVector = {x/100, -y/25, z/100};
 						//hitVector = {0, 0, 0};	
 						
 						
@@ -534,20 +549,32 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 			currentRagdoll.GetBoneRigidBody(CharacterBones.LFOOT).SetMass(originalMasses[CharacterBones.LFOOT]);
 		
 			vector currentVelocity;
+			
+			
+
+			
+			
+			
 			float tempX
 			float tempY;
 			float tempZ;
 			for(int i = 0; i < currentRagdoll.GetNumBones(); i++)
 			{
 				tempX = 0;
-				tempY = Math.Lerp(-0.001, -0.02, deltaTime);
-				
-				if (Math.AbsFloat(tempY) > 0.02)
-					tempY = - 0.02;
-				
+			
+				float yDuration = 1;		//just for test
+				float minY = 0.01;			//to get a first stronger hit
+				float maxY = 0.08;
+				float y;
+				if (deltaTime < yDuration)
+					y = Math.Lerp(minY, maxY, deltaTime/yDuration);
+				else
+					y = maxY;
+			
+
 				tempZ = 0;
 					
-				currentRagdoll.GetBoneRigidBody(i).ApplyImpulse(Vector(tempX, tempY, tempZ));
+				currentRagdoll.GetBoneRigidBody(i).ApplyImpulse(Vector(tempX, -y, tempZ));
 			}
 		}
 		else
@@ -570,24 +597,7 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 	
 	
 	
-	
-	ref array<ref Shape> m_aDbgCollisionShapes;
 
-	private void Debug_DrawLineSimple(vector start, vector end, array<ref Shape> dbgShapes)
-	{
-		vector p[2];
-		p[0] = start;
-		p[1] = end;
-
-		int shapeFlags = ShapeFlags.NOOUTLINE;
-		Shape s = Shape.CreateLines(ARGBF(1, 1, 1, 1), shapeFlags, p, 2);
-		dbgShapes.Insert(s);
-		
-	}
-	
-	
-	
-	
 	bool isCharacterInAcceptablePosition = true;		//default true
 	
 	
@@ -598,7 +608,7 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 		if (!isCharacterInAcceptablePosition)
 			return true;
 		
-		isCharacterInAcceptablePosition = (ent.ClassName() != "SCR_DestructibleBuildingEntity");
+		isCharacterInAcceptablePosition = (ent.ClassName() != "SCR_DestructibleBuildingEntity") && (ent.ClassName() != "GenericEntity");
 		
 		//	if (!isCharacterInAcceptablePosition)
 		//		Print(ent.ClassName());
