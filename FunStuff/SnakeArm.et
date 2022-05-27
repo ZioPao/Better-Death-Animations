@@ -1,0 +1,9 @@
+GenericEntity {
+ ID "5976CE1137E446EA"
+ components {
+  MeshObject "{5976CE110026DF65}" {
+   Object "{997E734514BF88E3}FunStuff/arm.xob"
+  }
+ }
+ coords -1.12 2.042 1.432
+}

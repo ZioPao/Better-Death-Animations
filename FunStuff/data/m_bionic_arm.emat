@@ -1,0 +1,16 @@
+MatPBRBasic {
+ Color 1 0.791 0.791 1
+ SurfaceProperties "{EDB153DC99889624}Common/Materials/Game/Metal/metal_3mm.gamemat"
+ SpecularMul 1.861
+ RoughnessScale 0.576
+ MetalnessScale 1.19
+ AOScale 0.723
+ DielectricReflectance 0.041
+ CavityFromAO 0.142
+ BCRMap "{D6470FD86499F81B}FunStuff/textures/t_bionic_arm_d.edds"
+ OpacityMap "{0C2F30F9F3D364A5}FunStuff/textures/t_bionic_arm_m.edds"
+ NormalPower 3.352
+ NMOMap "{52C719BA4C5EEAAA}FunStuff/textures/t_bionic_arm_n.edds"  anim( 0 )
+ DetailNormalPower 0.672
+ DetailNormalMap "{3757AC2C2EAD0D91}FunStuff/textures/t_bionic_arm_r.edds"
+}

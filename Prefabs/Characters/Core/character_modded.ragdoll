@@ -32,12 +32,12 @@ bone "hips", true, 0.1
 		//mixed left hand
 		bone "leftArm", true, 0.07
 		{
-			sixdofjoint "0 0 -10", -90, 25, -50, 50, -45, 25, 1 , 15
+			sixdofjoint "0 0 -25", -10, 90, -10, 10, -15, 20, 50 , 225
 	
 
 			bone "LeftForeArm", true, 0.1
 			{
-				sixdofjoint "0 0 10", -25, 25, 0, 0, 0, 0, 1 , 15
+				sixdofjoint "0 0 -10", -25, 25, 0, 0, 0, 0, 25 , 15
 
 				bone "LeftHandMiddle1", false
 			}
@@ -46,11 +46,12 @@ bone "hips", true, 0.1
 		//mixed right hand
 		bone "RightArm", true, 0.07
 		{
-			sixdofjoint "0 0 10", -90, 25, -50, 50, -45, 25, 100 , 15
+			// x is the value we most need. manages forward motion for the right arm
+			sixdofjoint "0 0 20", -10, 90, -10,  10, -15, 20, 50 , 225
 
 			bone "RightForeArm", true, 0.1
 			{
-				sixdofjoint "0 0 -10", -25, 25, 0, 0, 0, 0, 100 , 15
+				sixdofjoint "0 0 -10", -25, 25, 0, 0, 0, 0,  25 , 15
 
 				bone "RightHandMiddle1", false
 			}

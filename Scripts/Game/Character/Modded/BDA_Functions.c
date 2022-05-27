@@ -25,32 +25,28 @@ class BDA_Functions_Generic
 	/* Specific functions dedicated to ragdolls*/
 	static PhysicsRagdoll RegenPhysicsRagdoll(ChimeraCharacter character)
 	{
-			// Get original ragdoll and destroy it
-			PhysicsRagdoll.GetRagdoll(character).Destroy(1);
+		// Get original ragdoll and destroy it
+		PhysicsRagdoll.GetRagdoll(character).Destroy(1);
 			
-			// Recreate it
+		// Recreate it
 			
-			int tempPhysicsLayerDefsProjectile = 3;		//this is a bug currently, EPhysicsLayerDefs.Projectile doesn't correspond to a real enum, so the layer mask won't work.
-			PhysicsRagdoll.CreateRagdoll(character, "{5DD1A0EBAD2116CB}Prefabs/Characters/Core/character_modded.ragdoll", 1, 3 | EPhysicsLayerDefs.Weapon |EPhysicsLayerDefs.Ragdoll |  EPhysicsLayerDefs.Character | EPhysicsLayerDefs.Vehicle);
-			//PhysicsRagdoll.CreateRagdoll(character, "{E80E7FF9A6480F9C}Prefabs/Characters/Core/character_modded_encircle_2.ragdoll", 1, 3 | EPhysicsLayerDefs.Weapon |EPhysicsLayerDefs.Ragdoll |  EPhysicsLayerDefs.Character | EPhysicsLayerDefs.Vehicle);
+		int tempPhysicsLayerDefsProjectile = 3;		//this is a bug currently, EPhysicsLayerDefs.Projectile doesn't correspond to a real enum, so the layer mask won't work.
+		PhysicsRagdoll.CreateRagdoll(character, "{5DD1A0EBAD2116CB}Prefabs/Characters/Core/character_modded.ragdoll", 1, 3 | EPhysicsLayerDefs.Weapon |EPhysicsLayerDefs.Ragdoll |  EPhysicsLayerDefs.Character | EPhysicsLayerDefs.Vehicle);
+		//PhysicsRagdoll.CreateRagdoll(character, "{E80E7FF9A6480F9C}Prefabs/Characters/Core/character_modded_encircle_2.ragdoll", 1, 3 | EPhysicsLayerDefs.Weapon |EPhysicsLayerDefs.Ragdoll |  EPhysicsLayerDefs.Character | EPhysicsLayerDefs.Vehicle);
+		//PhysicsRagdoll.CreateRagdoll(GetCharacter(), "{BDAFE20F95BD19F0}Prefabs/Characters/Core/character_modded_encircle.ragdoll", 1, EPhysicsLayerDefs.Ragdoll);
+		
+		PhysicsRagdoll ragdoll = PhysicsRagdoll.GetRagdoll(character);
+			
 
-		
-		
-			//PhysicsRagdoll.CreateRagdoll(GetCharacter(), "{BDAFE20F95BD19F0}Prefabs/Characters/Core/character_modded_encircle.ragdoll", 1, EPhysicsLayerDefs.Ragdoll);
-			PhysicsRagdoll ragdoll = PhysicsRagdoll.GetRagdoll(character);
+		ragdoll.GetBoneRigidBody(0).SetResponseIndex(0);
+		ragdoll.GetBoneRigidBody(0).SetMass(2);		//2
+		ragdoll.GetBoneRigidBody(0).EnableGravity(true);
+		ragdoll.GetBoneRigidBody(0).SetDamping(0.000000001 ,0.000000001);		//doesn't directly affect mass, so we don't have a real way to get this value programatically. bis pls fix
+		ragdoll.GetBoneRigidBody(0).SetSleepingTreshold(1,1);		//default 1, doesn't seem to work?
 			
-		
-			
-			ragdoll.GetBoneRigidBody(0).SetResponseIndex(0);
-			ragdoll.GetBoneRigidBody(0).SetMass(2);		//2
-			
-			ragdoll.GetBoneRigidBody(0).EnableGravity(true);
-			//ragdoll.GetBoneRigidBody(0).SetMass(5);		// SET THIS HIGHER!!!!
-			ragdoll.GetBoneRigidBody(0).SetDamping(0.000000001 ,0.000000001);
-			//test_phys.SetSleepingTreshold(0.000000001, 0.000000001);		//default 1 
-			ragdoll.GetBoneRigidBody(0).SetSleepingTreshold(1,1);		//default 1, doesn't seem to work?
-			
-			ragdoll.Enable();
+
+
+		ragdoll.Enable();
 		
 			return ragdoll;
 	}
