@@ -96,9 +96,9 @@ geometry "hips", "Spine3", 0.25, HUMANOID_MATERIAL
 geometry "Spine3", "Head", 0.14, HUMANOID_MATERIAL
 geometry "Head", "HeadTerm", 0.10, HUMANOID_MATERIAL
 
-geometry "LeftArm", "LeftForeArm", 0.1, HUMANOID_MATERIAL
+geometry "LeftArm", "LeftForeArm", 0.01, HUMANOID_MATERIAL
 geometry "LeftForeArm", "LeftHandMiddle1", 0.045, HUMANOID_MATERIAL
-geometry "RightArm", "RightForeArm", 0.1, HUMANOID_MATERIAL
+geometry "RightArm", "RightForeArm", 0.01, HUMANOID_MATERIAL
 geometry "RightForeArm", "RightHandMiddle1", 0.045, HUMANOID_MATERIAL
 
 geometry "LeftLeg", "LeftKnee", 0.08, HUMANOID_MATERIAL
