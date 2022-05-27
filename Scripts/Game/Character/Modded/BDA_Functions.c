@@ -1,25 +1,10 @@
-class BDA_Functions
+class BDA_Functions_Generic
 {
 	
 	
 	/* GENERIC FUNCTIONS */
-		
-	static float CalculateDeltaTime(bool firstUpdate)
-	{
-		// Calculate actual delta time
-		BaseWorld world = GetGame().GetWorld();
-		//if (!world)
-		//	return;
-		
-		float time = world.GetWorldTime();
-		if (firstUpdate)
-			SplashScreenSequence.m_fWorldTime = time;
-		
-		float delta = (time - SplashScreenSequence.m_fWorldTime) / 1000;
-		return delta;
-		
 	
-	}
+
 	
 	static SCR_CharacterCommandHandlerComponent FindCommandHandler(ChimeraCharacter character)
 	{
@@ -66,10 +51,40 @@ class BDA_Functions
 		
 			return ragdoll;
 	}
-	
-	
-	
+}
 
 
+
+
+
+
+
+class BDA_Timer
+{
+		
+	private float startTime;
+	private float currentTime;
+	
+	
+	void Start()
+	{
+		startTime = GetGame().GetWorld().GetWorldTime();
+		
+	}
+	
+	float UpdateDeltaTime()
+	{
+		currentTime = GetGame().GetWorld().GetWorldTime();
+		
+		float deltaTime = (currentTime - startTime) * 0.001;
+		return deltaTime;
+		
+
+	}
+	
 
 }
+
+
+
+

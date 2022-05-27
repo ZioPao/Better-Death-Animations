@@ -5,6 +5,8 @@
 //todo list 
 /* 
 - Interpolation between movement speed and impact speed  
+- Better check for terrain, it doesn't work well when a char is on a prefab (like stairs or inside a building)
+- Lower gravity y 
 - More cleaning 
 
 */
@@ -22,14 +24,18 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 	const string TAG_HITZONE_LARM = "LArm";	
 	const string TAG_HITZONE_RARM = "RArm";
 	const string TAG_HITZONE_HIPS = "Hips";
-
+	
+	const float startDivider = 2000;
+	float counter = 1;
 
 	PhysicsRagdoll currentRagdoll;
 	CharacterControllerComponent m_characterControllerComponent;
 	SCR_CharacterDamageManagerComponent m_characterDamageManagerComponent;
 	
-	float counter = 1;
 	float deltaTime;
+	ref BDA_Timer timer;
+	float divider;
+	
 	
 	override void OnInit(IEntity owner)
 	{
@@ -48,7 +54,8 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 			m_characterControllerComponent = CharacterControllerComponent.Cast(character.FindComponent(CharacterControllerComponent));
 		if (!m_characterDamageManagerComponent)
 			m_characterDamageManagerComponent = SCR_CharacterDamageManagerComponent.Cast(character.FindComponent(SCR_CharacterDamageManagerComponent));
-
+		if (!timer)
+			timer = new BDA_Timer();
 	
 	}
 	
@@ -62,8 +69,7 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 		if (m_OnPlayerDeathWithParam)
 			m_OnPlayerDeathWithParam.Invoke(this, instigator);
 
-		//Get the delta time for everything after this 
-		deltaTime = BDA_Functions.CalculateDeltaTime(true);
+
 
 		
 		// Get the player stuff. We'll do it here 'cause we can't rely on OnInit since it could have changed. 
@@ -89,21 +95,29 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 			hitZone.TryGetColliderDescription(GetCharacter(), hitZoneColliderID, hitZoneColliders, null, null);
 	
 			vector hitToApply;			
+			//Print(hitZoneName);
 			switch(hitZoneName)
 			{
-				case TAG_HITZONE_HEAD:
-				case TAG_HITZONE_NECK:
+
 				case TAG_HITZONE_LCALF:
 				case TAG_HITZONE_RCALF:
 				case TAG_HITZONE_LTHIGH:
 				case TAG_HITZONE_RTHIGH:
+				case TAG_HITZONE_HIPS:
+				
+				{
+					hitToApply = hitVector/20;
+					break;
+				}
+				case TAG_HITZONE_HEAD:
+				case TAG_HITZONE_NECK:
 				{
 					hitToApply = hitVector/15;
 					break;
 				}
 				default:
 				{
-					hitToApply = hitVector/10;
+					hitToApply = hitVector/7;
 
 				}
 			
@@ -126,7 +140,7 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 			}
 
 			// Regen ragdoll
-			currentRagdoll = BDA_Functions.RegenPhysicsRagdoll(GetCharacter());
+			currentRagdoll = BDA_Functions_Generic.RegenPhysicsRagdoll(GetCharacter());
 			
 			//Finally starts the ragdoll
 			m_characterControllerComponent.Ragdoll();
@@ -149,8 +163,13 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 			currentRagdoll.GetBoneRigidBody(0).ApplyImpulseAt(hitPosition, hitToApply);		
 
 			// Special case for headshots, basically "instakill"
+			
+			int waitTime = Math.RandomIntInclusive(300, 800);
+			
+			//Get the delta time for everything after this 
+			timer.Start();
 			if (hitZoneName == TAG_HITZONE_HEAD)
-				GetGame().GetCallqueue().CallLater(WaitSecondaryScriptFastRagdollDeath, 800, false);
+				GetGame().GetCallqueue().CallLater(WaitSecondaryScriptFastRagdollDeath, waitTime, false);
 			else
 				GetGame().GetCallqueue().CallLater(WaitSecondaryScriptPushRagdollAround, 500, false);		
 
@@ -171,7 +190,7 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 		}
 		else
 		{
-			SCR_CharacterCommandHandlerComponent characterCommandHandlerComponent = BDA_Functions.FindCommandHandler(GetCharacter());
+			SCR_CharacterCommandHandlerComponent characterCommandHandlerComponent = BDA_Functions_Generic.FindCommandHandler(GetCharacter());
 			//We need the CharacterInputContext for the player
 			CharacterInputContext m_characterInputContext = m_playerCharacterControllerComponent.GetInputContext();
 			float dyingDirection = m_characterInputContext.GetDie();
@@ -234,28 +253,52 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 	/* Real function to make the ragdolls move around */
 	void PushRagdollAround()
 	{
+
+		
+		// we're gonna use a parabola to simulate all the phases, stupor, shock, and then death. 
+		divider = startDivider;
+		
 		
 		if(currentRagdoll.GetNumBones() > 0)
 		{
-			deltaTime = BDA_Functions.CalculateDeltaTime(false);
-			float valToScaleXZ = 0.2/counter;			//15 is too heavy? Also fuck this counter why did I even use it
-			Print(valToScaleXZ);
+			deltaTime = timer.UpdateDeltaTime();
+			float valToScale = Math.Lerp(0,2, deltaTime)/divider;
+			float valToScaleSecond = Math.Lerp(-100, 100, deltaTime);
+			float valToScaleXZ = 0.12/counter;			//15 is too heavy? Also fuck this counter why did I even use it
+			
+			
 			
 			for(int i = 0; i < currentRagdoll.GetNumBones(); i++)
 			{
+				
+				divider += deltaTime;
+				
+				
+				
 				float x = Math.RandomFloatInclusive(-valToScaleXZ, valToScaleXZ);
-				float y = Math.Lerp(-0.000001, -0.0015, deltaTime);			//todo this really needs to get fixed
+				float y = -valToScale;
 				float z = Math.RandomFloatInclusive(-valToScaleXZ, valToScaleXZ);
+
+				//float y = -Math.Lerp(0,1,deltaTime)/divider;
+				
+				divider += deltaTime;	//Increment it with time
+				//float y = Math.Lerp(-0.001, -0.015, deltaTime);			//todo this really needs to get fixed
+				
+				
+				//Print(valToScaleSecond);
+				//vector parabola = BDA_Functions_Generic.GenerateParabola(-5.0, 5.0, 10, deltaTime);
+				//float y = parabola[1];		//not sure about this.
+
 				
 				vector hitVector = {x, y , z};		//z makes them spin 
 				currentRagdoll.GetBoneRigidBody(i).ApplyImpulse(hitVector);
-				counter += 0.05;
+				counter += 0.0045;
 			}
 		}
 		else
 		{
 			GetGame().GetCallqueue().Remove(PushRagdollAround);
-			counter = 1;		//not sure if it's needed but whatev
+			counter = 1;
 			return;
 		}
 	}
@@ -263,7 +306,12 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 	/* Used when charcter get headshotted*/
 	void FastRagdollDeath()
 	{
-		deltaTime = BDA_Functions.CalculateDeltaTime(false);
+		
+		deltaTime = timer.UpdateDeltaTime();
+		
+		
+		
+		
 		if(currentRagdoll.GetNumBones() > 0)
 		{
 			vector currentVelocity;
@@ -290,13 +338,6 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 		}
 	}
 	
-		
-
-	
-	
-
-	
-
 	
 	
 	void HeadDismemberment(){
