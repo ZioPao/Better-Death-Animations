@@ -85,6 +85,11 @@ class BDA_Timer
 
 	}
 	
+	float GetStartTime()
+	{
+		return startTime;
+	}
+	
 
 }
 

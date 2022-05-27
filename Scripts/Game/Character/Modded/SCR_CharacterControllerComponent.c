@@ -189,8 +189,8 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 					currentRagdoll.GetBoneRigidBody(i).SetDamping(1 ,1);
 					
 					// a little bit of random mass? 
-					int randomMass = Math.RandomInt(7,10);
-					currentRagdoll.GetBoneRigidBody(i).SetMass(randomMass);
+					//int randomMass = Math.RandomInt(7,10);
+					currentRagdoll.GetBoneRigidBody(i).SetMass(10);
 					gravityToApply = -0.3;
 
 				}
@@ -232,8 +232,7 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 			
 			int waitTime = Math.RandomIntInclusive(20, 50);
 			
-			//Get the delta time for everything after this 
-			timer.Start();
+
 			if (hitZoneName == TAG_HITZONE_HEAD)
 				GetGame().GetCallqueue().CallLater(WaitSecondaryScriptFastRagdollDeath, waitTime, false);
 			else
@@ -314,6 +313,11 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 		
 		//how much we're gonna increment, make it a little random. This is gonna be a seed basically 
 		float step = 0.00005;
+		
+		restoredMasses = new array<float>;			
+		
+		//Get the delta time for everything after this 
+		timer.Start();
 
 		GetGame().GetCallqueue().CallLater(PushRagdollAround, 10, true, startValue, middleValue, endValue, step); // in milliseconds
 	}
@@ -329,25 +333,30 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 
 	bool hasReachedMiddleValue = false;		//should be "local" afaik but i'm not sure.
 	float currentValToScale = 0.0;
+	ref array<float> restoredMasses;
 	
 	/* Real function to make the ragdolls move around */
 	void PushRagdollAround(float startValue, float middleValue, float endValue, float step)
 	{
 		
-		deltaTime = timer.UpdateDeltaTime();
+
 		
-
-
+		if (!currentRagdoll)
+			return;			//we must wait I guess
 
 		if (currentRagdoll.GetNumBones() > 0)
 		{
-			
-			
-			float timeStep = Math.AbsFloat(step/deltaTime);
-			if (timeStep < step)
-				timeStep = step;	//restore it
+			float timeStep;
+			if (deltaTime > 0)
+			{
+				timeStep = Math.AbsFloat(step/deltaTime);
+				if (timeStep < step)
+					timeStep = step;	//restore it
+			}
+			else
+				timeStep = step;
 
-			float timeDampeningStep = Math.AbsFloat(dampeningStep + (50 * deltaTime));		
+			float timeDampeningStep = Math.AbsFloat(dampeningStep + (15 * deltaTime));		
 		
 			float dampeningToSet;
 		
@@ -355,7 +364,7 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 				dampeningToSet = DEFAULT_DAMPENING;
 			else
 				dampeningToSet = 1 - timeDampeningStep;
-		
+			
 			currentRagdoll.GetBoneRigidBody(1).SetDamping(dampeningToSet, dampeningToSet);
 			currentRagdoll.GetBoneRigidBody(9).SetDamping(dampeningToSet, dampeningToSet);
 			currentRagdoll.GetBoneRigidBody(10).SetDamping(dampeningToSet, dampeningToSet);
@@ -363,11 +372,18 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 			currentRagdoll.GetBoneRigidBody(12).SetDamping(dampeningToSet, dampeningToSet);
 			
 			
-			currentRagdoll.GetBoneRigidBody(1).SetMass(originalMasses[1]);
-			currentRagdoll.GetBoneRigidBody(9).SetMass(originalMasses[1]);
-			currentRagdoll.GetBoneRigidBody(10).SetMass(originalMasses[1]);
-			currentRagdoll.GetBoneRigidBody(11).SetMass(originalMasses[1]);
-			currentRagdoll.GetBoneRigidBody(12).SetMass(originalMasses[1]);
+			float massDuration = 5.0;
+			if (deltaTime < massDuration)
+			{
+				currentRagdoll.GetBoneRigidBody(1).SetMass(Math.Lerp(10.0, originalMasses[1], deltaTime/massDuration));
+				currentRagdoll.GetBoneRigidBody(9).SetMass(Math.Lerp(10.0, originalMasses[9], deltaTime/massDuration));
+				currentRagdoll.GetBoneRigidBody(10).SetMass(Math.Lerp(10.0, originalMasses[10], deltaTime/massDuration));
+				currentRagdoll.GetBoneRigidBody(11).SetMass(Math.Lerp(10.0, originalMasses[11], deltaTime/massDuration));
+				currentRagdoll.GetBoneRigidBody(12).SetMass(Math.Lerp(10.0, originalMasses[12], deltaTime/massDuration));
+
+			} 
+			
+
 		
 			
 			if (currentValToScale > middleValue || hasReachedMiddleValue)
@@ -404,11 +420,22 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 			
 			float x = Math.RandomFloatInclusive(-currentValToScale, currentValToScale);
 			
-			float y = Math.Lerp(0.08, 0.2, deltaTime)/DIVIDER;
 			
-			if (y >= 0.2)
-				y = 0.2;
+			//should add a check for deltaTime = 0 just in case
 			
+			float yDuration = 2.0;		//just for test
+			float maxY = 0.05;
+			float y;
+			if (deltaTime < yDuration)
+			{
+				y = Math.Lerp(0.003, maxY, deltaTime/yDuration);
+				
+			}
+			else
+				y = maxY;
+			
+
+			deltaTime = timer.UpdateDeltaTime();
 
 			
 			float z = Math.RandomFloatInclusive(-currentValToScale, currentValToScale);
