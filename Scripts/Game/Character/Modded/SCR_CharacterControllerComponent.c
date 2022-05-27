@@ -107,10 +107,7 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 			vector lastHitDirection = {lastHitArray[1][0], lastHitArray[1][1], lastHitArray[1][2]};		// for some reason I can't assign a vec to a vec so whatever
 			vector hitVector = {lastHitDirection[0], lastHitDirection[1]/5, lastHitDirection[2]};		// y stays the same since we want a little more oomph
 			vector hitPosition = {lastHitArray[0][0], lastHitArray[0][1], lastHitArray[0][2]};
-			
-			//if it's a headshot, then no rolling around 
-			
-			//fucking hell it stopped working for some reasons, vehicles no longer work.
+			float lastHitSpeed = m_characterDamageManagerComponent.GetLastHitSpeed();
 			
 			HitZone hitZone = m_characterDamageManagerComponent.GetLastHitZone();
 			vector hitToApply;		
@@ -132,18 +129,18 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 					case TAG_HITZONE_HIPS:
 					
 					{
-						hitToApply = hitVector/7;
+						hitToApply = hitVector/5;
 						break;
 					}
 					case TAG_HITZONE_HEAD:
 					case TAG_HITZONE_NECK:
 					{
-						hitToApply = hitVector/10;
+						hitToApply = hitVector/4;
 						break;
 					}
 					default:
 					{
-						hitToApply = hitVector/3;
+						hitToApply = hitVector/5;
 	
 					}
 				
@@ -162,19 +159,39 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 
 			
 			/* Preventing feet to clip in the ground */
-			vector characterOrigin = GetCharacter().GetOrigin();
-			float surfWorldY = GetGame().GetWorld().GetSurfaceY(characterOrigin[0], characterOrigin[2]);
-			float gravityToApply;
-			float differenceY = Math.AbsFloat(characterOrigin[1] - surfWorldY);
-			float safetyY = 0.05;		
-			if( differenceY >= 0.0005)
+			
+			//todo this is crap 
+			
+			
+			// from the char right down to check if it's a prefab\building or something like that. if it is... then whatever, don't do shit.
+			
+			// todo maybe a ray is better?
+			GetGame().GetWorld().QueryEntitiesBySphere(GetCharacter().GetOrigin(), 0.1, TestPosition, null, EQueryEntitiesFlags.STATIC | EQueryEntitiesFlags.WITH_OBJECT);
+			if (isCharacterInAcceptablePosition)
 			{
-				vector matrixTransform[4];
-				GetCharacter().GetTransform(matrixTransform);
-				matrixTransform[3] = Vector(matrixTransform[3][0], matrixTransform[3][1] + differenceY + safetyY, matrixTransform[3][2]);
-				GetCharacter().SetTransform(matrixTransform);
-
+				vector characterOrigin = GetCharacter().GetOrigin();
+				float surfWorldY = GetGame().GetWorld().GetSurfaceY(characterOrigin[0], characterOrigin[2]);
+				float differenceY = Math.AbsFloat(characterOrigin[1] - surfWorldY);
+				float safetyY = 0.05;		
+				if( differenceY >= 0.0005)
+				{
+					vector matrixTransform[4];
+					GetCharacter().GetTransform(matrixTransform);
+					matrixTransform[3] = Vector(matrixTransform[3][0], matrixTransform[3][1] + differenceY + safetyY, matrixTransform[3][2]);
+					GetCharacter().SetTransform(matrixTransform);
+	
+				}
 			}
+			//else
+			//{
+				//Print("In building or something");
+
+			//}
+			
+			
+
+			
+
 
 			// Regen ragdoll
 			currentRagdoll = BDA_Functions_Generic.RegenPhysicsRagdoll(GetCharacter());
@@ -186,7 +203,7 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 			
 			
 			
-			
+			float gravityToApply;
 			originalMasses = new array<float>;
 			
 			for(int i = 0; i < currentRagdoll.GetNumBones(); i++)
@@ -353,12 +370,12 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 				
 				//todo no easy way to get original dampening ffs
 				dampeningToSet = MODIFIED_SECONDARY_DAMPING - Math.Lerp(0.0, DEFAULT_SECONDARY_DAMPING_SUB, deltaTime);
-				
+
 				//currentRagdoll.GetBoneRigidBody(1).SetDamping(dampeningToSet, dampeningToSet);
-				currentRagdoll.GetBoneRigidBody(9).SetDamping(dampeningToSet, dampeningToSet);
-				currentRagdoll.GetBoneRigidBody(10).SetDamping(dampeningToSet, dampeningToSet);
-				currentRagdoll.GetBoneRigidBody(11).SetDamping(dampeningToSet, dampeningToSet);
-				currentRagdoll.GetBoneRigidBody(12).SetDamping(dampeningToSet, dampeningToSet);
+				currentRagdoll.GetBoneRigidBody(CharacterBones.LCALF).SetDamping(dampeningToSet, dampeningToSet);
+				currentRagdoll.GetBoneRigidBody(CharacterBones.RCALF).SetDamping(dampeningToSet, dampeningToSet);
+				currentRagdoll.GetBoneRigidBody(CharacterBones.RFOOT).SetDamping(dampeningToSet, dampeningToSet);
+				currentRagdoll.GetBoneRigidBody(CharacterBones.LFOOT).SetDamping(dampeningToSet, dampeningToSet);
 			
 			}
 			
@@ -499,24 +516,22 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 	{
 		
 		deltaTime = timer.UpdateDeltaTime();
-		
-		
-		
-		
+
 		if(currentRagdoll.GetNumBones() > 0)
 		{
-			currentRagdoll.GetBoneRigidBody(1).SetDamping(DEFAULT_MAIN_DAMPING, DEFAULT_MAIN_DAMPING);
-			currentRagdoll.GetBoneRigidBody(9).SetDamping(DEFAULT_MAIN_DAMPING, DEFAULT_MAIN_DAMPING);
-			currentRagdoll.GetBoneRigidBody(10).SetDamping(DEFAULT_MAIN_DAMPING, DEFAULT_MAIN_DAMPING);
-			currentRagdoll.GetBoneRigidBody(11).SetDamping(DEFAULT_MAIN_DAMPING, DEFAULT_MAIN_DAMPING);
-			currentRagdoll.GetBoneRigidBody(12).SetDamping(DEFAULT_MAIN_DAMPING, DEFAULT_MAIN_DAMPING);
+			currentRagdoll.GetBoneRigidBody(CharacterBones.SPINE).SetDamping(DEFAULT_MAIN_DAMPING, DEFAULT_MAIN_DAMPING);
+			currentRagdoll.GetBoneRigidBody(CharacterBones.LCALF).SetDamping(DEFAULT_MAIN_DAMPING, DEFAULT_MAIN_DAMPING);
+			currentRagdoll.GetBoneRigidBody(CharacterBones.RCALF).SetDamping(DEFAULT_MAIN_DAMPING, DEFAULT_MAIN_DAMPING);
+			currentRagdoll.GetBoneRigidBody(CharacterBones.RFOOT).SetDamping(DEFAULT_MAIN_DAMPING, DEFAULT_MAIN_DAMPING);
+			currentRagdoll.GetBoneRigidBody(CharacterBones.LFOOT).SetDamping(DEFAULT_MAIN_DAMPING, DEFAULT_MAIN_DAMPING);
 			
 			
-			currentRagdoll.GetBoneRigidBody(1).SetMass(originalMasses[1]);
-			currentRagdoll.GetBoneRigidBody(9).SetMass(originalMasses[1]);
-			currentRagdoll.GetBoneRigidBody(10).SetMass(originalMasses[1]);
-			currentRagdoll.GetBoneRigidBody(11).SetMass(originalMasses[1]);
-			currentRagdoll.GetBoneRigidBody(12).SetMass(originalMasses[1]);
+			//pls dont be broken
+			currentRagdoll.GetBoneRigidBody(CharacterBones.SPINE).SetMass(originalMasses[CharacterBones.SPINE]);
+			currentRagdoll.GetBoneRigidBody(CharacterBones.LCALF).SetMass(originalMasses[CharacterBones.LCALF]);
+			currentRagdoll.GetBoneRigidBody(CharacterBones.RCALF).SetMass(originalMasses[CharacterBones.RCALF]);
+			currentRagdoll.GetBoneRigidBody(CharacterBones.RFOOT).SetMass(originalMasses[CharacterBones.RFOOT]);
+			currentRagdoll.GetBoneRigidBody(CharacterBones.LFOOT).SetMass(originalMasses[CharacterBones.LFOOT]);
 		
 			vector currentVelocity;
 			float tempX
@@ -544,12 +559,68 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 	
 	
 	
-	void HeadDismemberment(){
+	void HeadDismemberment()
+	{
 				
 			
 			// We can use this for head dismemberment... not sure about other stuff
 			//CharacterIdentityComponent identity = CharacterIdentityComponent.Cast(GetCharacter().FindComponent(CharacterIdentityComponent));
 			//identity.SetCovered(hitZoneName, false);
 	}
+	
+	
+	
+	
+	ref array<ref Shape> m_aDbgCollisionShapes;
+
+	private void Debug_DrawLineSimple(vector start, vector end, array<ref Shape> dbgShapes)
+	{
+		vector p[2];
+		p[0] = start;
+		p[1] = end;
+
+		int shapeFlags = ShapeFlags.NOOUTLINE;
+		Shape s = Shape.CreateLines(ARGBF(1, 1, 1, 1), shapeFlags, p, 2);
+		dbgShapes.Insert(s);
+		
+	}
+	
+	
+	
+	
+	bool isCharacterInAcceptablePosition = true;		//default true
+	
+	
+	bool TestPosition(notnull IEntity ent)
+	{
+		
+		
+		if (!isCharacterInAcceptablePosition)
+			return true;
+		
+		isCharacterInAcceptablePosition = (ent.ClassName() != "SCR_DestructibleBuildingEntity");
+		
+		//	if (!isCharacterInAcceptablePosition)
+		//		Print(ent.ClassName());
+		
+		return true;
+		
+	//not sure if there is a better way but right now i dont care
+
+		
+		//m_aDbgCollisionShapes = new array<ref Shape>;
+		//vector charOriginTemp = GetCharacter().GetOrigin();
+		//float yWorldTemp = GetGame().GetWorld().GetSurfaceY(characterOrigin[0], characterOrigin[2]);
+		//Shape shapeTest = Shape.CreateSphere(ARGBF(1,1,1,1), ShapeFlags.NOOUTLINE, charOriginTemp, 0.2);
+		//m_aDbgCollisionShapes.Insert(shapeTest);
+
+		
+		//vector checkVector = {charOriginTemp[0], yWorldTemp, charOriginTemp[2]};
+		
+		//Debug_DrawLineSimple(GetCharacter().GetOrigin(), checkVector, m_aDbgCollisionShapes);		
+				
+		//Print(ent.GetName());
+	}
+	
 }
 

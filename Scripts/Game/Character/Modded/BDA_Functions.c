@@ -91,19 +91,19 @@ class BDA_Timer
 
 
 enum CharacterBones{
-	HIPS,
-	SPINE,
-	HEAD,
-	LARM,
-	LFOREARM,
-	RARM,
-	RFOREARM,
-	LTHIGH,
-	RTHIGH,
-	LCALF,
-	RCALF,
-	RFOOT,
-	LFOOT
+	HIPS,		//0
+	SPINE,		//1
+	HEAD,		//2
+	LARM,		//3
+	LFOREARM,	//4
+	RARM,		//5
+	RFOREARM,	//6
+	LTHIGH,		//7
+	RTHIGH,		//8
+	LCALF,		//9
+	RCALF,		//10
+	RFOOT,		//11
+	LFOOT		//12
 }
 
 

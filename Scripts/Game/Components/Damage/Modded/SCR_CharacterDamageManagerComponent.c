@@ -5,6 +5,7 @@ modded class SCR_CharacterDamageManagerComponent : ScriptedDamageManagerComponen
 	private vector lastHitCoordinates[3];
 	private HitZone lastHitZone;
 	private int lastColliderID;
+	private float lastHitSpeed;
 	
 	//-----------------------------------------------------------------------------------------------------------
 	protected override void OnDamage(
@@ -20,6 +21,7 @@ modded class SCR_CharacterDamageManagerComponent : ScriptedDamageManagerComponen
 		super.OnDamage(type, damage, pHitZone, instigator, hitTransform, speed, colliderID, nodeID);
 		lastHitCoordinates = hitTransform;
 		lastHitZone = pHitZone;
+		lastHitSpeed = speed;
 		
 		UpdateBloodyFace();
 	}
@@ -44,6 +46,10 @@ modded class SCR_CharacterDamageManagerComponent : ScriptedDamageManagerComponen
 	
 	int GetLastColliderID(){
 		return lastColliderID;
+	}
+	float GetLastHitSpeed()
+	{
+		return lastHitSpeed;
 	}
 
 }
