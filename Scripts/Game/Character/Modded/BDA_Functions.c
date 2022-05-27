@@ -90,5 +90,22 @@ class BDA_Timer
 }
 
 
+enum CharacterBones{
+	HIPS,
+	SPINE,
+	HEAD,
+	LARM,
+	LFOREARM,
+	RARM,
+	RFOREARM,
+	LTHIGH,
+	RTHIGH,
+	LCALF,
+	RCALF,
+	RFOOT,
+	LFOOT
+}
+
+
 
 

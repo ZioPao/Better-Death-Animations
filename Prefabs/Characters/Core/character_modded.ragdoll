@@ -37,7 +37,7 @@ bone "hips", true, 0.1
 
 			bone "LeftForeArm", true, 0.1
 			{
-				sixdofjoint "0 0 -10", -25, 25, 0, 0, 0, 0, 25 , 15
+				sixdofjoint "0 0 -10", -25, 25, -5, 15, -5, 15, 25 , 15
 
 				bone "LeftHandMiddle1", false
 			}
@@ -51,7 +51,7 @@ bone "hips", true, 0.1
 
 			bone "RightForeArm", true, 0.1
 			{
-				sixdofjoint "0 0 -10", -25, 25, 0, 0, 0, 0,  25 , 15
+				sixdofjoint "0 0 -10", -50, 15, -5, 15, -5, 15,  25 , 15
 
 				bone "RightHandMiddle1", false
 			}

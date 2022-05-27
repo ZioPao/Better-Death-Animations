@@ -34,7 +34,7 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 	const float DEFAULT_MAIN_DAMPING = 0.00000001;		// ONLY FOR 0
  	float DEFAULT_MAIN_DAMPING_SUB = 1 - DEFAULT_MAIN_DAMPING;
 	
-	const float DEFAULT_SECONDARY_DAMPING = 0.25;		
+	const float DEFAULT_SECONDARY_DAMPING = 0.1;				//0.25 ?
 	float DEFAULT_SECONDARY_DAMPING_SUB = 1 - DEFAULT_SECONDARY_DAMPING;
 	
 	const float MODIFIED_SECONDARY_DAMPING = 1.0;
@@ -197,13 +197,10 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 				originalMasses.Insert(currentRagdoll.GetBoneRigidBody(i).GetMass());
 
 				//we need to know which rigidbody we're applying the force. we can't apply force to the feet, they will glitch out.
-				if (i == 9 || i == 10 || i == 11 || i == 12)
+				if (i == CharacterBones.LCALF || i == CharacterBones.RCALF || i == CharacterBones.RFOOT || i == CharacterBones.LFOOT)
 				{
 					currentRagdoll.GetBoneRigidBody(i).SetDamping(MODIFIED_SECONDARY_DAMPING ,MODIFIED_SECONDARY_DAMPING);
-					
-					// a little bit of random mass? 
 					currentRagdoll.GetBoneRigidBody(i).SetMass(10);
-					//gravityToApply = -0.3;
 
 				}
 				else
@@ -294,21 +291,21 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 	void WaitSecondaryScriptPushRagdollAround(){
 		
 		//Right when we start, we're gonna start from this value to scale on
-		float startValue = 0.005;
+		float startValue = 0.02;
 		// Middle Point 
-		float middleValue = 0.055;
+		float middleValue = 2;
 		//When it's gonna stop to change 
 		float endValue = 0.0;		
 		
 		//how much we're gonna increment, make it a little random. This is gonna be a seed basically 
-		float step = 0.0001;
+		float step = 0.01;
 		
 		restoredMasses = new array<float>;			
 		
 		//Get the delta time for everything after this 
 		timer.Start();
 
-		GetGame().GetCallqueue().CallLater(PushRagdollAround, 10, true, startValue, middleValue, endValue, step); // in milliseconds
+		GetGame().GetCallqueue().CallLater(PushRagdollAround, 50, true, startValue, middleValue, endValue, step); // in milliseconds
 	}
 	
 	
@@ -369,11 +366,13 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 			float massDuration = 0.3;
 			if (deltaTime < massDuration)
 			{
-				currentRagdoll.GetBoneRigidBody(1).SetMass(Math.Lerp(10.0, originalMasses[1] + 3, deltaTime/massDuration));
-				currentRagdoll.GetBoneRigidBody(9).SetMass(Math.Lerp(10.0, originalMasses[9] + 3, deltaTime/massDuration));
-				currentRagdoll.GetBoneRigidBody(10).SetMass(Math.Lerp(10.0, originalMasses[10] + 3, deltaTime/massDuration));
-				currentRagdoll.GetBoneRigidBody(11).SetMass(Math.Lerp(10.0, originalMasses[11] + 3, deltaTime/massDuration));
-				currentRagdoll.GetBoneRigidBody(12).SetMass(Math.Lerp(10.0, originalMasses[12] + 3, deltaTime/massDuration));
+				// todo maybe add al ittle bit of weight, but it'll affect movement after, keep it in mind
+				float modifier = 3.0;
+				currentRagdoll.GetBoneRigidBody(CharacterBones.SPINE).SetMass(Math.Lerp(10.0, originalMasses[CharacterBones.SPINE] + modifier, deltaTime/massDuration));
+				currentRagdoll.GetBoneRigidBody(CharacterBones.LCALF).SetMass(Math.Lerp(10.0, originalMasses[CharacterBones.LCALF] + modifier, deltaTime/massDuration));
+				currentRagdoll.GetBoneRigidBody(CharacterBones.RCALF).SetMass(Math.Lerp(10.0, originalMasses[CharacterBones.RCALF] + modifier, deltaTime/massDuration));
+				currentRagdoll.GetBoneRigidBody(CharacterBones.RFOOT).SetMass(Math.Lerp(10.0, originalMasses[CharacterBones.RFOOT] + modifier, deltaTime/massDuration));
+				currentRagdoll.GetBoneRigidBody(CharacterBones.LFOOT).SetMass(Math.Lerp(10.0, originalMasses[CharacterBones.LFOOT] + modifier, deltaTime/massDuration));
 
 			} 
 			
@@ -411,16 +410,14 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 			
 			//Print("___________________________________________");
 			
-			
-			float x = Math.RandomFloatInclusive(-currentValToScale, currentValToScale);
-			float z = Math.RandomFloatInclusive(-currentValToScale, currentValToScale);
+
 
 			
 			//should add a check for deltaTime = 0 just in case
 			
-			float yDuration = 0.8;		//just for test
-			float minY = 0.04;			//to get a first stronger hit
-			float maxY = 0.1;
+			float yDuration = 1.0;		//just for test
+			float minY = 0.25;			//to get a first stronger hit
+			float maxY = 0.6;
 			float y;
 			if (deltaTime < yDuration)
 				y = Math.Lerp(minY, maxY, deltaTime/yDuration);
@@ -433,14 +430,58 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 			for(int i = 0; i < currentRagdoll.GetNumBones(); i++)
 			{
 				vector hitVector; //= {x, -y , z};		//z makes them spin 
+							
+				//Random for every loop.
+				float x = Math.RandomFloatInclusive(-currentValToScale, currentValToScale);
+				float z = Math.RandomFloatInclusive(-currentValToScale, currentValToScale);
 				
-				
-				if (i == 3 || i == 4 || i == 5 || i == 6)
-					hitVector = {0, -y + 0.045 , 0};		//arms are a special case, let's just help them a bit poor things
-				else
-					hitVector = {x, -y , z};
+				switch(i)
+				{
+					case CharacterBones.LARM:
+					case CharacterBones.LFOREARM:
+					case CharacterBones.RARM:
+					case CharacterBones.RFOREARM:
+					case CharacterBones.HEAD:
+					{
+						//hitVector = {x/2, -y + 0.08 , z/2};		//arms are a special case, let's just help them a bit poor things
+						hitVector = {x/100, -y/20, z/100};
+						//hitVector = {0, 0, 0};	
+						
+						
+						break;
+					}
+					case CharacterBones.LCALF:
+					case CharacterBones.LFOOT:
+					case CharacterBones.RCALF:
+					case CharacterBones.RFOOT:
+					{
+						// SOmething else since they need some more force
+						//hitVector = {x*100, -y , z*100};		//arms are a special case, let's just help them a bit poor things
+						
+						// With these settings, 2 should be the middle point.
+
+						hitVector = {x, -y, z};
+						break;
+					}
+					case CharacterBones.LTHIGH:
+					case CharacterBones.RTHIGH: 
+					{
+						hitVector = {0, 0, 0};	
+					}
+					default:
+					{
+						//No changes? there is something wrong with x and z, scale them manually for now
+						//hitVector = {x, -y , z};		
+						//hitVector = {0, -y , 0};
+						hitVector = {0, -y, 0};
+
+					}
+				}
 				
 				currentRagdoll.GetBoneRigidBody(i).ApplyImpulse(hitVector);
+
+				
+
 			}		
 		}
 		else
