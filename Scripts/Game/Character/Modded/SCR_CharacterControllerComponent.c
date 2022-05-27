@@ -14,6 +14,8 @@
 */
 
 
+
+
 modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 	
 	const string TAG_HITZONE_HEAD = "Head";
@@ -27,7 +29,10 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 	const string TAG_HITZONE_RARM = "RArm";
 	const string TAG_HITZONE_HIPS = "Hips";
 	
-	const float DIVIDER = 50;
+	const float DIVIDER = 100;
+	
+	const float DEFAULT_DAMPENING = 0.000000001;
+ 
 
 	PhysicsRagdoll currentRagdoll;
 	CharacterControllerComponent m_characterControllerComponent;
@@ -35,7 +40,8 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 	
 	float deltaTime;
 	ref BDA_Timer timer;
-	
+	ref array<float> originalMasses;
+
 	
 	override void OnInit(IEntity owner)
 	{
@@ -56,6 +62,8 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 			m_characterDamageManagerComponent = SCR_CharacterDamageManagerComponent.Cast(character.FindComponent(SCR_CharacterDamageManagerComponent));
 		if (!timer)
 			timer = new BDA_Timer();
+		
+		
 	
 	}
 	
@@ -111,7 +119,7 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 					case TAG_HITZONE_HIPS:
 					
 					{
-						hitToApply = hitVector/20;
+						hitToApply = hitVector/10;
 						break;
 					}
 					case TAG_HITZONE_HEAD:
@@ -146,7 +154,7 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 			float gravityToApply;
 			float differenceY = Math.AbsFloat(characterOrigin[1] - surfWorldY);
 			float safetyY = 0.05;		
-			if( differenceY >= 0.005)
+			if( differenceY >= 0.0005)
 			{
 				vector matrixTransform[4];
 				GetCharacter().GetTransform(matrixTransform);
@@ -160,34 +168,76 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 			
 			//Finally starts the ragdoll
 			m_characterControllerComponent.Ragdoll();
+			int test = 1000;
 			
+			
+			
+			
+			
+			originalMasses = new array<float>;
 			
 			for(int i = 0; i < currentRagdoll.GetNumBones(); i++)
 			{	
+				
+				
+				
+				originalMasses.Insert(currentRagdoll.GetBoneRigidBody(i).GetMass());
+
 				//we need to know which rigidbody we're applying the force. we can't apply force to the feet, they will glitch out.
 				if (i == 9 || i == 10 || i == 11 || i == 12)
+				{
+					currentRagdoll.GetBoneRigidBody(i).SetDamping(1 ,1);
+					
+					// a little bit of random mass? 
+					int randomMass = Math.RandomInt(7,10);
+					currentRagdoll.GetBoneRigidBody(i).SetMass(randomMass);
 					gravityToApply = -0.3;
+
+				}
 				else
 					gravityToApply = -9.81;		
 				
-				
+
 				currentRagdoll.GetBoneRigidBody(i).ApplyForce(Vector(0, gravityToApply, 0));		
 			}
-			
+						
 
+			/*
+			int test = 100;
+			currentRagdoll.GetBoneRigidBody(9).SetDamping(1 ,1);
+			currentRagdoll.GetBoneRigidBody(10).SetDamping(1 ,1);
+			currentRagdoll.GetBoneRigidBody(11).SetDamping(1 ,1);
+			currentRagdoll.GetBoneRigidBody(12).SetDamping(1 ,1);
+
+			
+			Print(currentRagdoll.GetNumBones());
+			currentRagdoll.GetBoneRigidBody(0).SetDamping(test ,test);
+			currentRagdoll.GetBoneRigidBody(1).SetDamping(test ,test);
+			//currentRagdoll.GetBoneRigidBody(2).SetDamping(test ,test);		
+			//currentRagdoll.GetBoneRigidBody(3).SetDamping(test ,test);
+			//currentRagdoll.GetBoneRigidBody(4).SetDamping(test ,test);
+			//currentRagdoll.GetBoneRigidBody(5).SetDamping(test ,test);
+			//currentRagdoll.GetBoneRigidBody(6).SetDamping(test ,test);
+			//currentRagdoll.GetBoneRigidBody(7).SetDamping(test ,test);
+			currentRagdoll.GetBoneRigidBody(8).SetDamping(test ,test);
+			currentRagdoll.GetBoneRigidBody(9).SetDamping(test ,test);
+			currentRagdoll.GetBoneRigidBody(10).SetDamping(test ,test);
+			currentRagdoll.GetBoneRigidBody(11).SetDamping(test ,test);
+			currentRagdoll.GetBoneRigidBody(12).SetDamping(test ,test);			
+			*/
 			//Applies an impulse to let the things start.
 			currentRagdoll.GetBoneRigidBody(0).ApplyImpulseAt(hitPosition, hitToApply);		
 
 			// Special case for headshots, basically "instakill"
 			
-			int waitTime = Math.RandomIntInclusive(300, 800);
+			int waitTime = Math.RandomIntInclusive(20, 50);
 			
 			//Get the delta time for everything after this 
 			timer.Start();
 			if (hitZoneName == TAG_HITZONE_HEAD)
 				GetGame().GetCallqueue().CallLater(WaitSecondaryScriptFastRagdollDeath, waitTime, false);
 			else
-				GetGame().GetCallqueue().CallLater(WaitSecondaryScriptPushRagdollAround, 500, false);		
+				GetGame().GetCallqueue().CallLater(WaitSecondaryScriptPushRagdollAround, waitTime, false);		
 
 
 
@@ -256,15 +306,15 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 	void WaitSecondaryScriptPushRagdollAround(){
 		
 		//Right when we start, we're gonna start from this value to scale on
-		float startValue = 0.0005;
+		float startValue = 0.005;
 		// Middle Point 
-		float middleValue = 0.03;  
+		float middleValue = 0.02;  
 		//When it's gonna stop to change 
 		float endValue = 0.0;		
 		
 		//how much we're gonna increment, make it a little random. This is gonna be a seed basically 
-		float step = 0.0002;
-		
+		float step = 0.00005;
+
 		GetGame().GetCallqueue().CallLater(PushRagdollAround, 10, true, startValue, middleValue, endValue, step); // in milliseconds
 	}
 	
@@ -275,7 +325,8 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 	}
 	
 	
-	
+	float dampeningStep = 0.08;
+
 	bool hasReachedMiddleValue = false;		//should be "local" afaik but i'm not sure.
 	float currentValToScale = 0.0;
 	
@@ -283,23 +334,47 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 	void PushRagdollAround(float startValue, float middleValue, float endValue, float step)
 	{
 		
-		
 		deltaTime = timer.UpdateDeltaTime();
 		
-		float timeStep = Math.AbsFloat(step/deltaTime);
-		
-		if (timeStep < step)
-			timeStep = step;	//restore it
-		
+
+
 
 		if (currentRagdoll.GetNumBones() > 0)
 		{
+			
+			
+			float timeStep = Math.AbsFloat(step/deltaTime);
+			if (timeStep < step)
+				timeStep = step;	//restore it
+
+			float timeDampeningStep = Math.AbsFloat(dampeningStep + (50 * deltaTime));		
+		
+			float dampeningToSet;
+		
+			if (1 - timeDampeningStep < DEFAULT_DAMPENING)
+				dampeningToSet = DEFAULT_DAMPENING;
+			else
+				dampeningToSet = 1 - timeDampeningStep;
+		
+			currentRagdoll.GetBoneRigidBody(1).SetDamping(dampeningToSet, dampeningToSet);
+			currentRagdoll.GetBoneRigidBody(9).SetDamping(dampeningToSet, dampeningToSet);
+			currentRagdoll.GetBoneRigidBody(10).SetDamping(dampeningToSet, dampeningToSet);
+			currentRagdoll.GetBoneRigidBody(11).SetDamping(dampeningToSet, dampeningToSet);
+			currentRagdoll.GetBoneRigidBody(12).SetDamping(dampeningToSet, dampeningToSet);
+			
+			
+			currentRagdoll.GetBoneRigidBody(1).SetMass(originalMasses[1]);
+			currentRagdoll.GetBoneRigidBody(9).SetMass(originalMasses[1]);
+			currentRagdoll.GetBoneRigidBody(10).SetMass(originalMasses[1]);
+			currentRagdoll.GetBoneRigidBody(11).SetMass(originalMasses[1]);
+			currentRagdoll.GetBoneRigidBody(12).SetMass(originalMasses[1]);
+		
 			
 			if (currentValToScale > middleValue || hasReachedMiddleValue)
 			{
 				hasReachedMiddleValue=true;
 				//decrease until endValue
-				
+
 
 				if (currentValToScale < endValue)
 				{
@@ -329,23 +404,23 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 			
 			float x = Math.RandomFloatInclusive(-currentValToScale, currentValToScale);
 			
-			float y = Math.Lerp(0.1, 0.2, deltaTime)/DIVIDER;
+			float y = Math.Lerp(0.08, 0.2, deltaTime)/DIVIDER;
 			
 			if (y >= 0.2)
 				y = 0.2;
 			
-			
+
 			
 			float z = Math.RandomFloatInclusive(-currentValToScale, currentValToScale);
 			for(int i = 0; i < currentRagdoll.GetNumBones(); i++)
 			{
+				
+
+				
+
 				vector hitVector = {x, -y , z};		//z makes them spin 
 				currentRagdoll.GetBoneRigidBody(i).ApplyImpulse(hitVector);
-			}
-
-	
-
-			
+			}		
 		}
 		else
 		{
@@ -368,6 +443,19 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 		
 		if(currentRagdoll.GetNumBones() > 0)
 		{
+			currentRagdoll.GetBoneRigidBody(1).SetDamping(DEFAULT_DAMPENING, DEFAULT_DAMPENING);
+			currentRagdoll.GetBoneRigidBody(9).SetDamping(DEFAULT_DAMPENING, DEFAULT_DAMPENING);
+			currentRagdoll.GetBoneRigidBody(10).SetDamping(DEFAULT_DAMPENING, DEFAULT_DAMPENING);
+			currentRagdoll.GetBoneRigidBody(11).SetDamping(DEFAULT_DAMPENING, DEFAULT_DAMPENING);
+			currentRagdoll.GetBoneRigidBody(12).SetDamping(DEFAULT_DAMPENING, DEFAULT_DAMPENING);
+			
+			
+			currentRagdoll.GetBoneRigidBody(1).SetMass(originalMasses[1]);
+			currentRagdoll.GetBoneRigidBody(9).SetMass(originalMasses[1]);
+			currentRagdoll.GetBoneRigidBody(10).SetMass(originalMasses[1]);
+			currentRagdoll.GetBoneRigidBody(11).SetMass(originalMasses[1]);
+			currentRagdoll.GetBoneRigidBody(12).SetMass(originalMasses[1]);
+		
 			vector currentVelocity;
 			float tempX
 			float tempY;

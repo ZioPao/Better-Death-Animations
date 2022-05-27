@@ -1,0 +1,15 @@
+GenericWorldLightEntity {
+ ID "5976A5A3B1486BF4"
+ angleX -65
+ angleY 60
+ SunAngularSize 0.5
+ DirectLightLV 15
+ DirectLightColor 1 1 1 0
+ IndirectLightLV 14
+ IndirectLightColor 1 1 1 1
+ ShadowFactor 1
+ PenumbraMultiplier 50
+ TargetEV 1.75
+ TargetEVLimitBright 0.5
+ TargetEVLimitDark -0.5
+}
