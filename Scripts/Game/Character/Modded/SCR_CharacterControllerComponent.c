@@ -28,6 +28,7 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 	const string TAG_HITZONE_LARM = "LArm";	
 	const string TAG_HITZONE_RARM = "RArm";
 	const string TAG_HITZONE_HIPS = "Hips";
+	const string TAG_HITZONE_ABDOMEN = "Abdomen";
 	
 	const float DIVIDER = 100;
 	
@@ -38,6 +39,7 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 	float DEFAULT_SECONDARY_DAMPING_SUB = 1 - DEFAULT_SECONDARY_DAMPING;
 	
 	const float MODIFIED_SECONDARY_DAMPING = 1.0;
+	const float MODIFIED_SECONDARY_DAMPING_WHILE_MOVING = 0.75;
 
 	
 	// fucking hell  
@@ -98,6 +100,8 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 		CharacterControllerComponent m_playerCharacterControllerComponent = CharacterControllerComponent.Cast(m_playerController.GetControlledEntity().FindComponent(CharacterControllerComponent));
 
 		
+		
+		
 		// Players won't receive it for various reasons. At least for now.
 		if (m_playerCharacterControllerComponent != m_characterControllerComponent)
 		{
@@ -113,6 +117,30 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 			vector hitToApply;		
 			string hitZoneName;
 
+			
+						
+			
+			// Get current velocity of char 
+			
+			// DONT CHANGE THE DAMPING WHEN THERE IS MOVEMENT YOU COCK
+			
+			vector movementVelocity = m_characterControllerComponent.GetMovementVelocity();
+			
+			
+			
+			
+			// 
+			
+			
+			Print(m_characterControllerComponent.GetMovementVelocity());
+			Print(hitVector);
+			Print("After considering char velocity");
+			hitVector += movementVelocity;		//no idea if it's gonna work
+			Print(hitVector);
+
+			Print("______________________");
+
+			
 			if (hitZone)
 			{
 				int hitZoneColliderID = m_characterDamageManagerComponent.GetLastColliderID();
@@ -126,12 +154,17 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 					case TAG_HITZONE_RCALF:
 					case TAG_HITZONE_LTHIGH:
 					case TAG_HITZONE_RTHIGH:
-					case TAG_HITZONE_HIPS:
-					
 					{
 						hitToApply = hitVector/5;
 						break;
 					}
+					case TAG_HITZONE_HIPS:
+					case TAG_HITZONE_ABDOMEN:
+					{
+						hitToApply = hitVector/3;
+						break;
+					}
+
 					case TAG_HITZONE_HEAD:
 					case TAG_HITZONE_NECK:
 					{
@@ -141,12 +174,21 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 					}
 					case TAG_HITZONE_CHEST:
 					{
-						hitToApply = hitVector/7;
+						hitToApply = hitVector/4;
 						break;
 					}
+					case TAG_HITZONE_RARM:
+					case TAG_HITZONE_RFOREARM:
+					case TAG_HITZONE_LARM:
+					case TAG_HITZONE_LFOREARM:
+					{
+						hitToApply = hitVector/12;
+						break;
+					}
+					
 					default:
 					{
-						hitToApply = hitVector/8;
+						hitToApply = hitVector/3;
 	
 					}
 				
@@ -158,9 +200,7 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 				hitZoneName = "";
 			}
 			
-			Print(hitToApply);
-		
-
+			
 
 
 			
@@ -198,6 +238,8 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 
 			
 
+			
+
 
 			// Regen ragdoll
 			currentRagdoll = BDA_Functions_Generic.RegenPhysicsRagdoll(GetCharacter());
@@ -212,11 +254,13 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 			float gravityToApply = 0;
 			originalMasses = new array<float>;
 			
+			
+
+			
+			
 			for(int i = 0; i < currentRagdoll.GetNumBones(); i++)
 			{	
-				
-				
-				
+
 				originalMasses.Insert(currentRagdoll.GetBoneRigidBody(i).GetMass());
 
 				
@@ -227,9 +271,23 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 					case CharacterBones.RFOOT:
 					case CharacterBones.LFOOT:
 					{
-						currentRagdoll.GetBoneRigidBody(i).SetDamping(MODIFIED_SECONDARY_DAMPING ,MODIFIED_SECONDARY_DAMPING);
+						
+						//todo clean this shit
+									
+						if (movementVelocity.Length() < 0.05)
+						
+							currentRagdoll.GetBoneRigidBody(i).SetDamping(MODIFIED_SECONDARY_DAMPING ,MODIFIED_SECONDARY_DAMPING);
+		
+						
+						else
+							currentRagdoll.GetBoneRigidBody(i).SetDamping(MODIFIED_SECONDARY_DAMPING_WHILE_MOVING ,	MODIFIED_SECONDARY_DAMPING_WHILE_MOVING);
+						
 						currentRagdoll.GetBoneRigidBody(i).SetMass(10);
+
+												
 						break;
+
+
 					}
 					default:
 					{
@@ -384,7 +442,7 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 				// damping to start on should be
 				
 				//todo no easy way to get original dampening ffs
-				dampintToSet = MODIFIED_SECONDARY_DAMPING - Math.Lerp(0.0, DEFAULT_SECONDARY_DAMPING_SUB, deltaTime);
+				dampintToSet = MODIFIED_SECONDARY_DAMPING - Math.Lerp(0.0, DEFAULT_SECONDARY_DAMPING_SUB, deltaTime) ;			// just for test
 
 				//currentRagdoll.GetBoneRigidBody(1).SetDamping(dampintToSet, dampintToSet);
 				currentRagdoll.GetBoneRigidBody(CharacterBones.LCALF).SetDamping(dampintToSet, dampintToSet);
@@ -398,7 +456,7 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 			float massDuration = 0.2;
 			if (deltaTime < massDuration)
 			{
-				// todo maybe add al ittle bit of weight, but it'll affect movement after, keep it in mind
+ 				// todo maybe add al ittle bit of weight, but it'll affect movement after, keep it in mind
 				float modifier = 5.0;
 				currentRagdoll.GetBoneRigidBody(CharacterBones.SPINE).SetMass(Math.Lerp(10.0, originalMasses[CharacterBones.SPINE] + modifier, deltaTime/massDuration));
 				currentRagdoll.GetBoneRigidBody(CharacterBones.LCALF).SetMass(Math.Lerp(10.0, originalMasses[CharacterBones.LCALF] + modifier, deltaTime/massDuration));
@@ -442,12 +500,6 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 			
 			//Print("___________________________________________");
 			
-
-
-			
-
-
-
 			
 			for(int i = 0; i < currentRagdoll.GetNumBones(); i++)
 			{
@@ -455,7 +507,7 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 							
 				//Random for every loop.
 				float x = Math.RandomFloatInclusive(-currentValToScale, currentValToScale);
-				float y = BDA_Functions_Generic.Lerp(0.35, 0.85, 1.0, deltaTime);
+				float y = BDA_Functions_Generic.Lerp(0.55, 2.5, 1, deltaTime);
 				float z = Math.RandomFloatInclusive(-currentValToScale, currentValToScale);
 				
 				
@@ -516,7 +568,7 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 					case CharacterBones.LTHIGH:
 					case CharacterBones.RTHIGH: 
 					{
-						hitVector = {0, 0, 0};	
+						hitVector = {0, -y/2, 0};	
 						break;
 					}
 					default:
