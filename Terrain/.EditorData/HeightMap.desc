@@ -1,7 +1,0 @@
-HeightMapImportDescClass {
- FileName "C:/Users/aless/Desktop/out.png"
- Flags 5
- MinHeight -1000000
- ResampleMinHeight 0
- ResampleMaxHeight 1
-}
