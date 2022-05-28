@@ -395,11 +395,11 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 			}
 			
 
-			float massDuration = 0.3;
+			float massDuration = 0.2;
 			if (deltaTime < massDuration)
 			{
 				// todo maybe add al ittle bit of weight, but it'll affect movement after, keep it in mind
-				float modifier = 3.0;
+				float modifier = 5.0;
 				currentRagdoll.GetBoneRigidBody(CharacterBones.SPINE).SetMass(Math.Lerp(10.0, originalMasses[CharacterBones.SPINE] + modifier, deltaTime/massDuration));
 				currentRagdoll.GetBoneRigidBody(CharacterBones.LCALF).SetMass(Math.Lerp(10.0, originalMasses[CharacterBones.LCALF] + modifier, deltaTime/massDuration));
 				currentRagdoll.GetBoneRigidBody(CharacterBones.RCALF).SetMass(Math.Lerp(10.0, originalMasses[CharacterBones.RCALF] + modifier, deltaTime/massDuration));
