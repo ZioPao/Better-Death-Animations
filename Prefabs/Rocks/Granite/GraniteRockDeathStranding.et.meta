@@ -1,0 +1,15 @@
+MetaFileClass {
+ Name "{47149FE005BB0DF8}Prefabs/Rocks/Granite/GraniteRockDeathStranding.et"
+ Configurations {
+  EntityTemplateResourceClass PC {
+  }
+  EntityTemplateResourceClass XBOX_ONE : PC {
+  }
+  EntityTemplateResourceClass XBOX_SERIES : PC {
+  }
+  EntityTemplateResourceClass PS4 : PC {
+  }
+  EntityTemplateResourceClass HEADLESS : PC {
+  }
+ }
+}

@@ -1,0 +1,17 @@
+GenericEntity : "{B94DDC61F0B7F9D7}Prefabs/Rocks/Rock_Base.et" {
+ ID "1133272B892A2239"
+ components {
+  MeshObject "{5977525B96C2221A}" {
+   Object "{C702724E75B4C888}Assets/Rocks/Granite/GraniteRock_01.xob"
+   LODFactors {
+    100 40 20 10 2 1
+   }
+  }
+  RigidBody "{5977525B96C22DE2}" {
+   ModelGeometry 1
+   Static 1
+  }
+ }
+ coords 2161.89 32.279 3126.531
+ Flags 1027
+}

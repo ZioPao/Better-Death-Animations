@@ -1,0 +1,5 @@
+MatPBRBasic {
+ Color 0 0 0 1
+ BCRMap "{1ADA563AB082C9FC}Assets/Characters/Basebody/Data/Body_BCR.edds"
+ NMOMap "{2202EDA869F59B62}Assets/Characters/Basebody/Data/Body_NMO.edds"
+}

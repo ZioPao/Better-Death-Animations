@@ -1,0 +1,14 @@
+MatAtmosphere {
+ SkyIntensityLV 15.573
+ ResidualAmbientSkyIntensityLV 0.587
+ AerialPerspectiveStrength 5.335
+ DistanceFogStart 0.727
+ DistanceFogEnd 0.72
+ SolarIrradianceTint 0.263 0.263 0.263 1
+ RayleighScatteringScale 0.053333
+ MieAbsorptionScale 0.066667
+ MieExponentialDistribution 1.796
+ FogLV 3.467
+ HorizonFogScale 2
+ HorizonFogBias 6.64
+}

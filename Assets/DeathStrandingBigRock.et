@@ -1,0 +1,18 @@
+GenericEntity : "{47149FE005BB0DF8}Prefabs/Rocks/Granite/GraniteRockDeathStranding.et" {
+ ID "1133272B892A2239"
+ components {
+  MeshObject "{5977525B96C2221A}" {
+   Materials {
+    MaterialAssignClass "{5977525B89E79ED1}" {
+     SourceMaterial "GraniteRock_01"
+     AssignedMaterial "{9E120F701AB94F64}Assets/Rocks/Granite/Data/GraniteRockDeathStranding.emat"
+    }
+   }
+  }
+ }
+ coords -21.771 2.921 148.985
+ angleX -15.754
+ angleY 76.33
+ angleZ 41.587
+ scale 2.2
+}

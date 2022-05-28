@@ -455,11 +455,10 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 							
 				//Random for every loop.
 				float x = Math.RandomFloatInclusive(-currentValToScale, currentValToScale);
+				float y = BDA_Functions_Generic.Lerp(0.35, 0.85, 1.0, deltaTime);
 				float z = Math.RandomFloatInclusive(-currentValToScale, currentValToScale);
-							// todo make these like external or something 
 				
 				
-				y = BDA_Functions_Generic.Lerp(0.25, 075, 1.0, deltaTime);
 
 				switch(i)
 				{
@@ -487,14 +486,14 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 						
 						y =  Math.RandomFloatInclusive(-valToScaleY/testDividerNeg , valToScaleY/testDividerPos);
 
-						//float tempY = Math.RandomFloatInclusive(-0.000001, 0.0002);
 
+						#ifdef DEBUG_PAO
 						Print(testDividerNeg);
 						Print(testDividerPos);
 						Print(valToScaleY);
 						
 						Print("___________");
-						
+						#endif
 						hitVector = {x/200, y/200, z/200};
 						//hitVector = {0, 0, 0};	S
 						
@@ -604,7 +603,7 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 				
 				
 				
-				y = BDA_Functions_Generic.Lerp(0.0001, 0.02, 1, deltaTime);
+				y = BDA_Functions_Generic.Lerp(0.0001, 0.02, 1.0, deltaTime);
 
 				
 				if (i == CharacterBones.LFOREARM || i == CharacterBones.RFOREARM)
