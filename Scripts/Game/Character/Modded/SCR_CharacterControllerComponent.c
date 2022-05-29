@@ -4,13 +4,13 @@
 
 //todo list 
 /* 
-- Interpolation between movement speed and impact speed  
+- Interpolation between movement speed and impact speed, maybe clean it up a little
 - Better check for terrain, it doesn't work well when a char is on a prefab (like stairs or inside a building)
-- Limiter for valToScale, we need to set 3 values.
-- Lower gravity y 
 - More cleaning 
-- Stiffness to legs BEFORE they fall, then dampen it 
-- No hitzones when vehicles crash characters
+
+- Consider prone units 
+- Add a check for "falling" units. Could cause those goddamn legs in the ground
+- performacne stuff you cock
 */
 
 
@@ -120,26 +120,21 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 			
 						
 			
-			// Get current velocity of char 
-			
-			// DONT CHANGE THE DAMPING WHEN THERE IS MOVEMENT YOU COCK
-			
+			/* We need to consider moving characters, so let's just sum those two vectors and then manage it later.
+			Consider that damping must not be as aggressive as when the character is not moving.*/
 			vector movementVelocity = m_characterControllerComponent.GetMovementVelocity();
+			hitVector += movementVelocity;		
+
 			
 			
 			
-			
-			// 
-			
-			
+			/*
 			Print(m_characterControllerComponent.GetMovementVelocity());
 			Print(hitVector);
 			Print("After considering char velocity");
-			hitVector += movementVelocity;		//no idea if it's gonna work
 			Print(hitVector);
-
 			Print("______________________");
-
+			*/
 			
 			if (hitZone)
 			{
@@ -178,9 +173,7 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 						break;
 					}
 					case TAG_HITZONE_RARM:
-					case TAG_HITZONE_RFOREARM:
 					case TAG_HITZONE_LARM:
-					case TAG_HITZONE_LFOREARM:
 					{
 						hitToApply = hitVector/12;
 						break;
@@ -196,7 +189,8 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 			}
 			else
 			{
-				hitToApply = hitVector/10;		//no idea 
+				// If a character dies by falling orby getting hit by a car, there will be no hitzone. 
+				hitToApply = hitVector/10;		
 				hitZoneName = "";
 			}
 			
@@ -204,14 +198,7 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 
 
 			
-			/* Preventing feet to clip in the ground */
-			
-			//todo this is crap 
-			
-			
-			// from the char right down to check if it's a prefab\building or something like that. if it is... then whatever, don't do shit.
-			
-			// todo maybe a ray is better? It is but it doesn't work thanks bohemia
+			/* Preventing feet to clip in the ground. Still a pretty jank solution but whatever*/
 			GetGame().GetWorld().QueryEntitiesBySphere(GetCharacter().GetOrigin(), 0.1, TestPosition, null, EQueryEntitiesFlags.STATIC);
 			if (isCharacterInAcceptablePosition)
 			{
@@ -228,42 +215,18 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 	
 				}
 			}
-			//else
-			//{
-				//Print("In building or something");
-
-			//}
-			
-			
 
 			
-
 			
-
-
-			// Regen ragdoll
+			/* Manages the ragdoll stuff, gravity, forces, etc. */
 			currentRagdoll = BDA_Functions_Generic.RegenPhysicsRagdoll(GetCharacter());
-			
-			//Finally starts the ragdoll
 			m_characterControllerComponent.Ragdoll();
-			int test = 1000;
-			
-			
-			
-			
 			float gravityToApply = 0;
 			originalMasses = new array<float>;
-			
-			
-
-			
-			
 			for(int i = 0; i < currentRagdoll.GetNumBones(); i++)
 			{	
 
 				originalMasses.Insert(currentRagdoll.GetBoneRigidBody(i).GetMass());
-
-				
 				switch(i)
 				{
 					case CharacterBones.LCALF:
@@ -275,12 +238,9 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 						//todo clean this shit
 									
 						if (movementVelocity.Length() < 0.05)
-						
 							currentRagdoll.GetBoneRigidBody(i).SetDamping(MODIFIED_SECONDARY_DAMPING ,MODIFIED_SECONDARY_DAMPING);
-		
-						
 						else
-							currentRagdoll.GetBoneRigidBody(i).SetDamping(MODIFIED_SECONDARY_DAMPING_WHILE_MOVING ,	MODIFIED_SECONDARY_DAMPING_WHILE_MOVING);
+							currentRagdoll.GetBoneRigidBody(i).SetDamping(MODIFIED_SECONDARY_DAMPING_WHILE_MOVING, MODIFIED_SECONDARY_DAMPING_WHILE_MOVING);
 						
 						currentRagdoll.GetBoneRigidBody(i).SetMass(10);
 
@@ -295,8 +255,7 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 					}
 				
 				}
-				
-
+			
 				currentRagdoll.GetBoneRigidBody(i).ApplyForce(Vector(0, gravityToApply, 0));		
 			}
 						
@@ -305,10 +264,7 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 			currentRagdoll.GetBoneRigidBody(0).ApplyImpulseAt(hitPosition, hitToApply);		
 
 			// Special case for headshots, basically "instakill"
-			
 			int waitTime = Math.RandomIntInclusive(20, 50);
-			
-
 			if (hitZoneName == TAG_HITZONE_HEAD)
 				GetGame().GetCallqueue().CallLater(WaitSecondaryScriptFastRagdollDeath, waitTime, false);
 			else
@@ -394,19 +350,16 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 		
 		//Get the delta time for everything after this 
 		timer.Start();
-
 		GetGame().GetCallqueue().CallLater(PushRagdollAround, 50, true, startValue, middleValue, endValue, step); // in milliseconds
 	}
 	
 	
 	void WaitSecondaryScriptFastRagdollDeath(){
-	
 		GetGame().GetCallqueue().CallLater(FastRagdollDeath, 10, true); // in milliseconds
 	}
 	
 	
 	float dampingStep = 0.08;
-
 	bool hasReachedMiddleValue = false;		//should be "local" afaik but i'm not sure.
 	float currentValToScale = 0.0;
 	ref array<float> restoredMasses;
@@ -520,20 +473,14 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 					case CharacterBones.RFOREARM:
 					case CharacterBones.HEAD:
 					{
-						//hitVector = {x/2, -y + 0.08 , z/2};		//arms are a special case, let's just help them a bit poor things
 						
-						
-						
-						
-						
+						//All this stuff to make their arms move for a bit and then stop, going towards the ground
 						float testDividerNeg = 500 - (deltaTime * 50);
 						
 						if (testDividerNeg < 0)
 							testDividerNeg = 1;
 						
 						float testDividerPos = 1000 + (deltaTime * 150);
-
-						
 						float valToScaleY = BDA_Functions_Generic.Lerp(1, 3, 15, deltaTime);
 						
 						y =  Math.RandomFloatInclusive(-valToScaleY/testDividerNeg , valToScaleY/testDividerPos);
@@ -557,18 +504,13 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 					case CharacterBones.RCALF:
 					case CharacterBones.RFOOT:
 					{
-						// SOmething else since they need some more force
-						//hitVector = {x*100, -y , z*100};		//arms are a special case, let's just help them a bit poor things
-						
-						// With these settings, 2 should be the middle point.
-
-						hitVector = {x, -y, z};
+						hitVector = {x, -y, z};				// Check again 
 						break;
 					}
 					case CharacterBones.LTHIGH:
 					case CharacterBones.RTHIGH: 
 					{
-						hitVector = {0, -y/2, 0};	
+						hitVector = {0, -y/2, 0};			// Just in case
 						break;
 					}
 					default:
@@ -580,19 +522,13 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 
 					}
 				}
-				
 				currentRagdoll.GetBoneRigidBody(i).ApplyImpulse(hitVector);
-
-				
-
 			}		
 		}
 		else
 		{
 			GetGame().GetCallqueue().Remove(PushRagdollAround);
 			return;
-			
-			
 		}
 		
 	}
@@ -619,14 +555,7 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 			currentRagdoll.GetBoneRigidBody(CharacterBones.RFOOT).SetDamping(DEFAULT_MAIN_DAMPING, DEFAULT_MAIN_DAMPING);
 			currentRagdoll.GetBoneRigidBody(CharacterBones.LFOOT).SetDamping(DEFAULT_MAIN_DAMPING, DEFAULT_MAIN_DAMPING);
 			
-			
-			//pls dont be broken
-			
-			
-			// i fucking hate myself.
-			
-			// ok so this stinks, it was a mistake but it worked. spine has an higher mass, it works better than a lower 
-			// mass like the original.... So I should really refactor this crap.
+			/* To make bodies go down faster we're gonna set an higher mass for every bone. We'll use the spine mass as a reference */
 			currentRagdoll.GetBoneRigidBody(CharacterBones.SPINE).SetMass(originalMasses[CharacterBones.SPINE]);
 			currentRagdoll.GetBoneRigidBody(CharacterBones.LCALF).SetMass(originalMasses[CharacterBones.SPINE]);
 			currentRagdoll.GetBoneRigidBody(CharacterBones.RCALF).SetMass(originalMasses[CharacterBones.SPINE]);
@@ -652,12 +581,8 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 					x = 0;
 					z = 0;
 				}
-				
-				
-				
-				y = BDA_Functions_Generic.Lerp(0.0001, 0.02, 1.0, deltaTime);
 
-				
+				y = BDA_Functions_Generic.Lerp(0.0001, 0.02, 1.0, deltaTime);
 				if (i == CharacterBones.LFOREARM || i == CharacterBones.RFOREARM)
 					y -= 0.005;
 				
@@ -691,8 +616,6 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 	
 
 	bool isCharacterInAcceptablePosition = true;		//default true
-	
-	
 	bool TestPosition(notnull IEntity ent)
 	{
 		
@@ -702,59 +625,10 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 		
 		isCharacterInAcceptablePosition = (ent.ClassName() != "SCR_DestructibleBuildingEntity") && (ent.ClassName() != "GenericEntity");
 		
-		//	if (!isCharacterInAcceptablePosition)
-		//		Print(ent.ClassName());
 		
 		return true;
 		
-	//not sure if there is a better way but right now i dont care
 
-		
-		//m_aDbgCollisionShapes = new array<ref Shape>;
-		//vector charOriginTemp = GetCharacter().GetOrigin();
-		//float yWorldTemp = GetGame().GetWorld().GetSurfaceY(characterOrigin[0], characterOrigin[2]);
-		//Shape shapeTest = Shape.CreateSphere(ARGBF(1,1,1,1), ShapeFlags.NOOUTLINE, charOriginTemp, 0.2);
-		//m_aDbgCollisionShapes.Insert(shapeTest);
-
-		
-		//vector checkVector = {charOriginTemp[0], yWorldTemp, charOriginTemp[2]};
-		
-		//Debug_DrawLineSimple(GetCharacter().GetOrigin(), checkVector, m_aDbgCollisionShapes);		
-				
-		//Print(ent.GetName());
 	}
 	
 }
-
-
-/*
-
-//mixed left hand
-		bone "leftArm", true, 0.1
-		{
-			sixdofjoint "0 0 20", -30, 10, -40, 20, -10, 0, 4, 225
-	
-
-			bone "LeftForeArm", true, 0.07
-			{
-				sixdofjoint "20 0 0", -30, 10, -40, 20, -10, 0, 50, 15
-
-				bone "LeftHandMiddle1", false
-			}
-		}
-
-		//mixed right hand
-		bone "RightArm", true, 0.1
-		{
-			// x is the value we most need. manages forward motion for the right arm
-			sixdofjoint "0 0 10", 30, -10, 0, 0, 0,0, 50 , 225
-
-			bone "RightForeArm", true, 0.07
-			{
-				sixdofjoint "0 0 20", -30, 10, -40, 20, 0, 0, 50, 15
-
-				bone "RightHandMiddle1", false
-			}
-		}
-
-*/
