@@ -29,9 +29,7 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 	const string TAG_HITZONE_RARM = "RArm";
 	const string TAG_HITZONE_HIPS = "Hips";
 	const string TAG_HITZONE_ABDOMEN = "Abdomen";
-	
-	const float DIVIDER = 100;
-	
+		
 	const float DEFAULT_MAIN_DAMPING = 0.00000001;		// ONLY FOR 0
  	float DEFAULT_MAIN_DAMPING_SUB = 1 - DEFAULT_MAIN_DAMPING;
 	
@@ -40,13 +38,6 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 	
 	const float MODIFIED_SECONDARY_DAMPING = 1.0;
 	const float MODIFIED_SECONDARY_DAMPING_WHILE_MOVING = 0.75;
-
-	
-	// fucking hell  
-	
-	const float DAMPING_ARM = 15.0;
-	const float DAMPING_FOREARM = 10.0;
-	
 	
 	
 	PhysicsRagdoll currentRagdoll;
@@ -56,6 +47,13 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 	float deltaTime;
 	ref BDA_Timer timer;
 	ref array<float> originalMasses;
+
+	
+	//todo find a better way
+	ref array<CharacterBones> lowerBodyBones = new array<CharacterBones>;
+	
+	ref array<CharacterBones> lowerBodyBonesAndSpine = new array<CharacterBones>;
+
 
 	
 	override void OnInit(IEntity owner)
@@ -78,7 +76,14 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 		if (!timer)
 			timer = new BDA_Timer();
 		
+		//lowerBodyBones.Insert(CharacterBones.SPINE);			//not sure about this
+		lowerBodyBones.Insert(CharacterBones.LCALF);
+		lowerBodyBones.Insert(CharacterBones.RCALF);
+		lowerBodyBones.Insert(CharacterBones.RFOOT);
+		lowerBodyBones.Insert(CharacterBones.LFOOT);
 		
+		lowerBodyBonesAndSpine.InsertAll(lowerBodyBones);
+		lowerBodyBonesAndSpine.Insert(CharacterBones.SPINE);
 	
 	}
 	
@@ -92,15 +97,11 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 		if (m_OnPlayerDeathWithParam)
 			m_OnPlayerDeathWithParam.Invoke(this, instigator);
 
-
-
 		
 		// Get the player stuff. We'll do it here 'cause we can't rely on OnInit since it could have changed. 
 		SCR_PlayerController m_playerController = SCR_PlayerController.Cast(GetGame().GetPlayerController());
 		CharacterControllerComponent m_playerCharacterControllerComponent = CharacterControllerComponent.Cast(m_playerController.GetControlledEntity().FindComponent(CharacterControllerComponent));
 
-		
-		
 		
 		// Players won't receive it for various reasons. At least for now.
 		if (m_playerCharacterControllerComponent != m_characterControllerComponent)
@@ -190,7 +191,7 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 			else
 			{
 				// If a character dies by falling orby getting hit by a car, there will be no hitzone. 
-				hitToApply = hitVector/10;		
+				hitToApply = hitVector/20;		
 				hitZoneName = "";
 			}
 			
@@ -221,11 +222,14 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 			/* Manages the ragdoll stuff, gravity, forces, etc. */
 			currentRagdoll = BDA_Functions_Generic.RegenPhysicsRagdoll(GetCharacter());
 			m_characterControllerComponent.Ragdoll();
+			
+			
+			
+			//Apply gravity
 			float gravityToApply = 0;
 			originalMasses = new array<float>;
 			for(int i = 0; i < currentRagdoll.GetNumBones(); i++)
 			{	
-
 				originalMasses.Insert(currentRagdoll.GetBoneRigidBody(i).GetMass());
 				switch(i)
 				{
@@ -236,7 +240,7 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 					{
 						
 						//todo clean this shit
-									
+								
 						if (movementVelocity.Length() < 0.05)
 							currentRagdoll.GetBoneRigidBody(i).SetDamping(MODIFIED_SECONDARY_DAMPING ,MODIFIED_SECONDARY_DAMPING);
 						else
@@ -260,13 +264,11 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 			}
 						
 
-			//Applies an impulse to let the things start.
+			//Applies impulses
 			currentRagdoll.GetBoneRigidBody(0).ApplyImpulseAt(hitPosition, hitToApply);		
-
-			// Special case for headshots, basically "instakill"
 			int waitTime = Math.RandomIntInclusive(20, 50);
 			if (hitZoneName == TAG_HITZONE_HEAD)
-				GetGame().GetCallqueue().CallLater(WaitSecondaryScriptFastRagdollDeath, waitTime, false);
+				GetGame().GetCallqueue().CallLater(WaitSecondaryScriptFastRagdollDeath, waitTime, false);		// Special case for headshots, basically "instakill"
 			else
 				GetGame().GetCallqueue().CallLater(WaitSecondaryScriptPushRagdollAround, waitTime, false);		
 
@@ -386,24 +388,13 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 			else
 				timeStep = step;
 
-			float dampintToSet;
+			
+			
+			//Set all the damping stuff
 			float dampingDuration = 0.2;
-			
-			if (deltaTime < dampingDuration)
-			{
-				
-				// damping to start on should be
-				
-				//todo no easy way to get original dampening ffs
-				dampintToSet = MODIFIED_SECONDARY_DAMPING - Math.Lerp(0.0, DEFAULT_SECONDARY_DAMPING_SUB, deltaTime) ;			// just for test
+			float dampingToSet = MODIFIED_SECONDARY_DAMPING - BDA_Functions_Generic.Lerp(0.0, DEFAULT_SECONDARY_DAMPING_SUB, dampingDuration, deltaTime);
+			ManageDamping(lowerBodyBones, dampingToSet);
 
-				//currentRagdoll.GetBoneRigidBody(1).SetDamping(dampintToSet, dampintToSet);
-				currentRagdoll.GetBoneRigidBody(CharacterBones.LCALF).SetDamping(dampintToSet, dampintToSet);
-				currentRagdoll.GetBoneRigidBody(CharacterBones.RCALF).SetDamping(dampintToSet, dampintToSet);
-				currentRagdoll.GetBoneRigidBody(CharacterBones.RFOOT).SetDamping(dampintToSet, dampintToSet);
-				currentRagdoll.GetBoneRigidBody(CharacterBones.LFOOT).SetDamping(dampintToSet, dampintToSet);
-			
-			}
 			
 
 			float massDuration = 0.2;
@@ -411,49 +402,18 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 			{
  				// todo maybe add al ittle bit of weight, but it'll affect movement after, keep it in mind
 				float modifier = 5.0;
-				currentRagdoll.GetBoneRigidBody(CharacterBones.SPINE).SetMass(Math.Lerp(10.0, originalMasses[CharacterBones.SPINE] + modifier, deltaTime/massDuration));
-				currentRagdoll.GetBoneRigidBody(CharacterBones.LCALF).SetMass(Math.Lerp(10.0, originalMasses[CharacterBones.LCALF] + modifier, deltaTime/massDuration));
-				currentRagdoll.GetBoneRigidBody(CharacterBones.RCALF).SetMass(Math.Lerp(10.0, originalMasses[CharacterBones.RCALF] + modifier, deltaTime/massDuration));
-				currentRagdoll.GetBoneRigidBody(CharacterBones.RFOOT).SetMass(Math.Lerp(10.0, originalMasses[CharacterBones.RFOOT] + modifier, deltaTime/massDuration));
-				currentRagdoll.GetBoneRigidBody(CharacterBones.LFOOT).SetMass(Math.Lerp(10.0, originalMasses[CharacterBones.LFOOT] + modifier, deltaTime/massDuration));
+				foreach (CharacterBones x : lowerBodyBonesAndSpine)	
+				{
+					float currentMass = Math.Lerp(10.0, originalMasses[x] + modifier, deltaTime/massDuration);
+					currentRagdoll.GetBoneRigidBody(x).SetMass(currentMass);
+				}
+
 
 			} 
 			
 
-		
-			
-			if (currentValToScale > middleValue || hasReachedMiddleValue)
-			{
-				hasReachedMiddleValue=true;
-				//decrease until endValue
-
-
-				if (currentValToScale < endValue)
-				{
-					//Print("Keeping end value");
-					currentValToScale = endValue;		//don't change it. 
-					//Print(currentValToScale);
-	
-				}
-				else
-				{
-					//Print("Decreasing");
-					currentValToScale -= timeStep;
-					//Print(currentValToScale);
-
-				}
-			}
-			else
-			{
-				//Print("Increasing");
-				//Increase till middle value 
-				currentValToScale += timeStep;
-				//Print(currentValToScale);
-			}
-			
-			//Print("___________________________________________");
-			
-			
+			//Not really sure we should use that strange timeStep crap that I made before, maybe replace it with lerp?
+			BDA_Functions_Generic.IncreaseAndThenDecrease(middleValue, endValue, timeStep, currentValToScale, hasReachedMiddleValue);
 			for(int i = 0; i < currentRagdoll.GetNumBones(); i++)
 			{
 				vector hitVector; //= {x, -y , z};		//z makes them spin 
@@ -514,11 +474,8 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 						break;
 					}
 					default:
-					{
-						//No changes? there is something wrong with x and z, scale them manually for now
-						//hitVector = {x, -y , z};		
-						//hitVector = {0, -y , 0};
-						hitVector = {0, -y, 0};
+						{
+						hitVector = {0, -y, 0};		// Applies only gravity
 
 					}
 				}
@@ -549,23 +506,20 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 		
 		if(currentRagdoll.GetNumBones() > 0)
 		{
-			currentRagdoll.GetBoneRigidBody(CharacterBones.SPINE).SetDamping(DEFAULT_MAIN_DAMPING, DEFAULT_MAIN_DAMPING);
-			currentRagdoll.GetBoneRigidBody(CharacterBones.LCALF).SetDamping(DEFAULT_MAIN_DAMPING, DEFAULT_MAIN_DAMPING);
-			currentRagdoll.GetBoneRigidBody(CharacterBones.RCALF).SetDamping(DEFAULT_MAIN_DAMPING, DEFAULT_MAIN_DAMPING);
-			currentRagdoll.GetBoneRigidBody(CharacterBones.RFOOT).SetDamping(DEFAULT_MAIN_DAMPING, DEFAULT_MAIN_DAMPING);
-			currentRagdoll.GetBoneRigidBody(CharacterBones.LFOOT).SetDamping(DEFAULT_MAIN_DAMPING, DEFAULT_MAIN_DAMPING);
+			
+			
+			ManageDamping(lowerBodyBones, DEFAULT_MAIN_DAMPING);
 			
 			/* To make bodies go down faster we're gonna set an higher mass for every bone. We'll use the spine mass as a reference */
-			currentRagdoll.GetBoneRigidBody(CharacterBones.SPINE).SetMass(originalMasses[CharacterBones.SPINE]);
-			currentRagdoll.GetBoneRigidBody(CharacterBones.LCALF).SetMass(originalMasses[CharacterBones.SPINE]);
-			currentRagdoll.GetBoneRigidBody(CharacterBones.RCALF).SetMass(originalMasses[CharacterBones.SPINE]);
-			currentRagdoll.GetBoneRigidBody(CharacterBones.RFOOT).SetMass(originalMasses[CharacterBones.SPINE]);
-			currentRagdoll.GetBoneRigidBody(CharacterBones.LFOOT).SetMass(originalMasses[CharacterBones.SPINE]);
-	
+			foreach(CharacterBones x : lowerBodyBonesAndSpine)
+				currentRagdoll.GetBoneRigidBody(x).SetMass(originalMasses[CharacterBones.SPINE]);
+			
+
 			float x;
 			float y;
 			float z;
 			
+			float fastTempMovement = 0.05;
 			
 			for(int i = 0; i < currentRagdoll.GetNumBones(); i++)
 			{
@@ -573,8 +527,8 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 				
 				if (counterLoopFastRagdollDeath < 10)
 				{
-					x = Math.RandomFloatInclusive(-0.1, 0.1);
-					z = Math.RandomFloatInclusive(-0.1, 0.1);
+					x = Math.RandomFloatInclusive(-fastTempMovement, fastTempMovement);
+					z = Math.RandomFloatInclusive(-fastTempMovement, fastTempMovement);
 				}
 				else
 				{
@@ -582,9 +536,9 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 					z = 0;
 				}
 
-				y = BDA_Functions_Generic.Lerp(0.0001, 0.02, 1.0, deltaTime);
+				y = BDA_Functions_Generic.Lerp(0.0001, 0.025, 0.5, deltaTime);
 				if (i == CharacterBones.LFOREARM || i == CharacterBones.RFOREARM)
-					y -= 0.005;
+					y -= 0.018;
 				
 	
 					
@@ -630,5 +584,19 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 		
 
 	}
+	
+	
+	
+	
+	
+	void ManageDamping(array<CharacterBones> bonesArray, float newDamping)
+	{
+		foreach(CharacterBones x: bonesArray)
+			currentRagdoll.GetBoneRigidBody(x).SetDamping(newDamping, newDamping);
+		
+	}
+
+	
+	
 	
 }

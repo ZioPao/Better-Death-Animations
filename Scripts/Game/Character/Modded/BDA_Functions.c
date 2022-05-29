@@ -3,9 +3,6 @@ class BDA_Functions_Generic
 	
 	
 	/* GENERIC FUNCTIONS */
-	
-
-	
 	static SCR_CharacterCommandHandlerComponent FindCommandHandler(ChimeraCharacter character)
 	{
 		if (!character)
@@ -55,12 +52,28 @@ class BDA_Functions_Generic
 	
 	static float Lerp(float min, float max, float duration, float deltaTime)
 	{
-		
+		//return bool and use out maybe? 
 		if (deltaTime < duration)
 			return Math.Lerp(min, max, deltaTime/duration);
 		else 
 			return max;
 
+	}
+	
+	static void IncreaseAndThenDecrease(float middle, float end, float step, out float currentValue, out bool hasReachedMiddle)
+	{
+		if (currentValue > middle || hasReachedMiddle)
+			{
+				hasReachedMiddle = true;
+			
+				if (currentValue < end)
+					currentValue = end;		//don't change it. 
+				else
+					currentValue -= step;
+			}
+			else
+				currentValue += step;
+			
 	}
 	
 	
