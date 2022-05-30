@@ -1,7 +1,20 @@
 GameProject {
- ID "BetterDeathAnimations"
+ ID "BetterDeathReactions"
  GUID "596CE5149F3F702A"
- TITLE "Better Death Animations"
+ TITLE "Better Death Reactions"
  Dependencies {
   "58D0FB3206B6F859"
  }
+ Configurations {
+  GameProjectConfig PC {
+  }
+  GameProjectConfig XBOX_ONE {
+  }
+  GameProjectConfig XBOX_SERIES {
+  }
+  GameProjectConfig PS4 {
+  }
+  GameProjectConfig HEADLESS {
+  }
+ }
+}

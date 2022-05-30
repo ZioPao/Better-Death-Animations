@@ -1,0 +1,12 @@
+FrameWidgetClass {
+ Name "PauseMenu"
+ {
+  ButtonWidgetClass "{597ADA0E711A3579}" : "{6BC4CBCD2BC0A393}BetterDeathReactionsSettings.layout" {
+   Name "BDRSettings"
+   Slot FrameWidgetSlot "{597ADA078CABDD73}" {
+   }
+   {
+   }
+  }
+ }
+}

@@ -37,7 +37,7 @@ bone "hips", true, 0.1
 
 			bone "LeftForeArm", true, 0.07
 			{
-				sixdofjoint "0 100 -0", -30, 10, -40, 20, -10, 0, 50, 15
+				sixdofjoint "-200 -120 -50", -30, 10, -40, 20, -10, 0, 50, 15
 
 				bone "LeftHandMiddle1", false
 			}
@@ -47,11 +47,11 @@ bone "hips", true, 0.1
 		bone "RightArm", true, 0.1
 		{
 			// x is the value we most need. manages forward motion for the right arm
-			sixdofjoint "0 0 10", 0, 30, 0, 30, 0, 0, 0 , 225
+			sixdofjoint "0 0 10", -10, 0, -10, 50, -20, 25, 4, 225
 
 			bone "RightForeArm", true, 0.07
 			{
-				sixdofjoint "0 0 20", -0, 0, -0, 30, 0, 50, 50, 15
+				sixdofjoint "0 0 0", -10, 0, 0, 0, 0, 10, 50, 15
 
 				bone "RightHandMiddle1", false
 			}
@@ -97,9 +97,9 @@ geometry "hips", "Spine3", 0.25, HUMANOID_MATERIAL
 geometry "Spine3", "Head", 0.14, HUMANOID_MATERIAL
 geometry "Head", "HeadTerm", 0.10, HUMANOID_MATERIAL
 
-geometry "LeftArm", "LeftForeArm", 0.01, HUMANOID_MATERIAL
+geometry "LeftArm", "LeftForeArm", 0.1, HUMANOID_MATERIAL
 geometry "LeftForeArm", "LeftHandMiddle1", 0.045, HUMANOID_MATERIAL
-geometry "RightArm", "RightForeArm", 0.01, HUMANOID_MATERIAL
+geometry "RightArm", "RightForeArm", 0.1, HUMANOID_MATERIAL
 geometry "RightForeArm", "RightHandMiddle1", 0.045, HUMANOID_MATERIAL
 
 geometry "LeftLeg", "LeftKnee", 0.08, HUMANOID_MATERIAL

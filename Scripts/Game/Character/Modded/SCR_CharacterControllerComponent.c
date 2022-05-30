@@ -17,6 +17,9 @@
 
 
 modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
+		
+	
+
 	
 	const string TAG_HITZONE_HEAD = "Head";
 	const string TAG_HITZONE_LCALF = "LCalf";
@@ -29,29 +32,41 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 	const string TAG_HITZONE_RARM = "RArm";
 	const string TAG_HITZONE_HIPS = "Hips";
 	const string TAG_HITZONE_ABDOMEN = "Abdomen";
-		
-	const float DEFAULT_MAIN_DAMPING = 0.00000001;		// ONLY FOR 0
- 	float DEFAULT_MAIN_DAMPING_SUB = 1 - DEFAULT_MAIN_DAMPING;
 	
-	const float DEFAULT_SECONDARY_DAMPING = 0.1;				//0.25 ?
-	float DEFAULT_SECONDARY_DAMPING_SUB = 1 - DEFAULT_SECONDARY_DAMPING;
 	
-	const float MODIFIED_SECONDARY_DAMPING = 1.0;
-	const float MODIFIED_SECONDARY_DAMPING_WHILE_MOVING = 0.75;
 	
+	[Attribute(defvalue: "0.00000001", uiwidget: UIWidgets.Slider, params: "0 1.0 0.00001", precision: 24, desc: "test", category: "Ragdoll")]
+	private float defaultMainDamping;
+	private float defaultMainDampingSub = 1 - defaultMainDamping;
+
+	
+	[Attribute(defvalue: "0.1", uiwidget: UIWidgets.Slider, params: "0 1.0 0.00001", precision: 24, desc: "Test", category: "Ragdoll")]
+	private float defaultSecondaryDamping;
+	private float defaultSecondaryDampingSub = 1 - defaultSecondaryDamping;
+	
+	
+	[Attribute(defvalue: "1", uiwidget: UIWidgets.Slider, params: "0 1.0 0.00001", precision: 24, desc: "Test", category: "Ragdoll")]
+	private float modifiedSecondaryDamping;
+	
+	[Attribute(defvalue: "0.75", uiwidget: UIWidgets.Slider, params: "0 1.0 0.00001", precision: 24, desc: "Test", category: "Ragdoll")]
+	private float modifiedSecondaryDampingWhileMoving;
+	
+	[Attribute(defvalue: "0.297619", uiwidget: UIWidgets.Slider, params: "0 1.0 000001", precision: 24, desc: "TEST", category: "Ragdoll")]
+	private float modifiedMassFastDeath;
+	
+
 	
 	PhysicsRagdoll currentRagdoll;
 	CharacterControllerComponent m_characterControllerComponent;
 	SCR_CharacterDamageManagerComponent m_characterDamageManagerComponent;
 	
 	float deltaTime;
-	ref BDA_Timer timer;
+	ref BDR_Timer timer;
 	ref array<float> originalMasses;
 
 	
 	//todo find a better way
 	ref array<CharacterBones> lowerBodyBones = new array<CharacterBones>;
-	
 	ref array<CharacterBones> lowerBodyBonesAndSpine = new array<CharacterBones>;
 
 
@@ -74,7 +89,7 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 		if (!m_characterDamageManagerComponent)
 			m_characterDamageManagerComponent = SCR_CharacterDamageManagerComponent.Cast(character.FindComponent(SCR_CharacterDamageManagerComponent));
 		if (!timer)
-			timer = new BDA_Timer();
+			timer = new BDR_Timer();
 		
 		//lowerBodyBones.Insert(CharacterBones.SPINE);			//not sure about this
 		lowerBodyBones.Insert(CharacterBones.LCALF);
@@ -97,212 +112,15 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 		if (m_OnPlayerDeathWithParam)
 			m_OnPlayerDeathWithParam.Invoke(this, instigator);
 
+		Rpc(RpcAsk_MainMethodBroadcast);
+		Rpc(RpcAsk_MainMethodAuthority);
+		//RpcAsk_MainMethod();
 		
-		// Get the player stuff. We'll do it here 'cause we can't rely on OnInit since it could have changed. 
-		SCR_PlayerController m_playerController = SCR_PlayerController.Cast(GetGame().GetPlayerController());
-		CharacterControllerComponent m_playerCharacterControllerComponent = CharacterControllerComponent.Cast(m_playerController.GetControlledEntity().FindComponent(CharacterControllerComponent));
-
+		//will it work?
 		
-		// Players won't receive it for various reasons. At least for now.
-		if (m_playerCharacterControllerComponent != m_characterControllerComponent)
-		{
 
-			// Get Last Hit
-			array<vector> lastHitArray = m_characterDamageManagerComponent.GetLastHitCoordinates();
-			vector lastHitDirection = {lastHitArray[1][0], lastHitArray[1][1], lastHitArray[1][2]};		// for some reason I can't assign a vec to a vec so whatever
-			vector hitVector = {lastHitDirection[0], lastHitDirection[1]/5, lastHitDirection[2]};		// y stays the same since we want a little more oomph
-			vector hitPosition = {lastHitArray[0][0], lastHitArray[0][1], lastHitArray[0][2]};
-			float lastHitSpeed = m_characterDamageManagerComponent.GetLastHitSpeed();
-			
-			HitZone hitZone = m_characterDamageManagerComponent.GetLastHitZone();
-			vector hitToApply;		
-			string hitZoneName;
-
-			
-						
-			
-			/* We need to consider moving characters, so let's just sum those two vectors and then manage it later.
-			Consider that damping must not be as aggressive as when the character is not moving.*/
-			vector movementVelocity = m_characterControllerComponent.GetMovementVelocity();
-			hitVector += movementVelocity;		
-
-			
-			
-			
-			/*
-			Print(m_characterControllerComponent.GetMovementVelocity());
-			Print(hitVector);
-			Print("After considering char velocity");
-			Print(hitVector);
-			Print("______________________");
-			*/
-			
-			if (hitZone)
-			{
-				int hitZoneColliderID = m_characterDamageManagerComponent.GetLastColliderID();
-				hitZoneName = hitZone.GetName();
-
-				Print(hitZoneName);
-				switch(hitZoneName)
-				{
-	
-					case TAG_HITZONE_LCALF:
-					case TAG_HITZONE_RCALF:
-					case TAG_HITZONE_LTHIGH:
-					case TAG_HITZONE_RTHIGH:
-					{
-						hitToApply = hitVector/5;
-						break;
-					}
-					case TAG_HITZONE_HIPS:
-					case TAG_HITZONE_ABDOMEN:
-					{
-						hitToApply = hitVector/3;
-						break;
-					}
-
-					case TAG_HITZONE_HEAD:
-					case TAG_HITZONE_NECK:
-					{
-
-						hitToApply = hitVector/15;
-						break;
-					}
-					case TAG_HITZONE_CHEST:
-					{
-						hitToApply = hitVector/4;
-						break;
-					}
-					case TAG_HITZONE_RARM:
-					case TAG_HITZONE_LARM:
-					{
-						hitToApply = hitVector/12;
-						break;
-					}
-					
-					default:
-					{
-						hitToApply = hitVector/3;
-	
-					}
-				
-				}	
-			}
-			else
-			{
-				// If a character dies by falling orby getting hit by a car, there will be no hitzone. 
-				hitToApply = hitVector/20;		
-				hitZoneName = "";
-			}
-			
-			
-
-
-			
-			/* Preventing feet to clip in the ground. Still a pretty jank solution but whatever*/
-			GetGame().GetWorld().QueryEntitiesBySphere(GetCharacter().GetOrigin(), 0.1, TestPosition, null, EQueryEntitiesFlags.STATIC);
-			if (isCharacterInAcceptablePosition)
-			{
-				vector characterOrigin = GetCharacter().GetOrigin();
-				float surfWorldY = GetGame().GetWorld().GetSurfaceY(characterOrigin[0], characterOrigin[2]);
-				float differenceY = Math.AbsFloat(characterOrigin[1] - surfWorldY);
-				float safetyY = 0.05;		
-				if( differenceY >= 0.0005)
-				{
-					vector matrixTransform[4];
-					GetCharacter().GetTransform(matrixTransform);
-					matrixTransform[3] = Vector(matrixTransform[3][0], matrixTransform[3][1] + differenceY + safetyY, matrixTransform[3][2]);
-					GetCharacter().SetTransform(matrixTransform);
-	
-				}
-			}
-
-			
-			
-			/* Manages the ragdoll stuff, gravity, forces, etc. */
-			currentRagdoll = BDA_Functions_Generic.RegenPhysicsRagdoll(GetCharacter());
-			m_characterControllerComponent.Ragdoll();
-			
-			
-			
-			//Apply gravity
-			float gravityToApply = 0;
-			originalMasses = new array<float>;
-			for(int i = 0; i < currentRagdoll.GetNumBones(); i++)
-			{	
-				originalMasses.Insert(currentRagdoll.GetBoneRigidBody(i).GetMass());
-				switch(i)
-				{
-					case CharacterBones.LCALF:
-					case CharacterBones.RCALF:
-					case CharacterBones.RFOOT:
-					case CharacterBones.LFOOT:
-					{
-						
-						//todo clean this shit
-								
-						if (movementVelocity.Length() < 0.05)
-							currentRagdoll.GetBoneRigidBody(i).SetDamping(MODIFIED_SECONDARY_DAMPING ,MODIFIED_SECONDARY_DAMPING);
-						else
-							currentRagdoll.GetBoneRigidBody(i).SetDamping(MODIFIED_SECONDARY_DAMPING_WHILE_MOVING, MODIFIED_SECONDARY_DAMPING_WHILE_MOVING);
-						
-						currentRagdoll.GetBoneRigidBody(i).SetMass(10);
-
-												
-						break;
-
-
-					}
-					default:
-					{
-						gravityToApply = -9.81;		
-					}
-				
-				}
-			
-				currentRagdoll.GetBoneRigidBody(i).ApplyForce(Vector(0, gravityToApply, 0));		
-			}
-						
-
-			//Applies impulses
-			currentRagdoll.GetBoneRigidBody(0).ApplyImpulseAt(hitPosition, hitToApply);		
-			int waitTime = Math.RandomIntInclusive(20, 50);
-			if (hitZoneName == TAG_HITZONE_HEAD)
-				GetGame().GetCallqueue().CallLater(WaitSecondaryScriptFastRagdollDeath, waitTime, false);		// Special case for headshots, basically "instakill"
-			else
-				GetGame().GetCallqueue().CallLater(WaitSecondaryScriptPushRagdollAround, waitTime, false);		
-
-
-
-			
-			#ifdef DEBUG_PAO
-			Print("Velocity del body");
-			Print(currentRagdoll.GetBoneRigidBody(0).GetVelocity());
-			Print("last hit array");
-			
-			Print(lastHitArray[0]);
-			Print(lastHitArray[1]);
-			Print(lastHitArray[2]);
-			Print("+____________________________");			
-			#endif
-
-		}
-		else
-		{
-			SCR_CharacterCommandHandlerComponent characterCommandHandlerComponent = BDA_Functions_Generic.FindCommandHandler(GetCharacter());
-			//We need the CharacterInputContext for the player
-			CharacterInputContext m_characterInputContext = m_playerCharacterControllerComponent.GetInputContext();
-			float dyingDirection = m_characterInputContext.GetDie();
-			
-			if (dyingDirection != 0.0)
-				characterCommandHandlerComponent.StartCommand_Death(dyingDirection);
-
-		}
-				
-			
-
-		if (m_playerController && m_CameraHandler && m_CameraHandler.IsInThirdPerson())
-			m_playerController.m_bRetain3PV = true;
+		if (SCR_PlayerController.Cast(GetGame().GetPlayerController()) && m_CameraHandler && m_CameraHandler.IsInThirdPerson())
+			SCR_PlayerController.Cast(GetGame().GetPlayerController()).m_bRetain3PV = true;
 		
 		// Insert the character and see if it held a weapon, if so, try adding that as well
 		GarbageManager garbageManager = GetGame().GetGarbageManager();
@@ -392,7 +210,7 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 			
 			//Set all the damping stuff
 			float dampingDuration = 0.2;
-			float dampingToSet = MODIFIED_SECONDARY_DAMPING - BDA_Functions_Generic.Lerp(0.0, DEFAULT_SECONDARY_DAMPING_SUB, dampingDuration, deltaTime);
+			float dampingToSet = modifiedSecondaryDamping - BDR_Functions_Generic.Lerp(0.0, defaultSecondaryDampingSub, dampingDuration, deltaTime);
 			ManageDamping(lowerBodyBones, dampingToSet);
 
 			
@@ -413,14 +231,14 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 			
 
 			//Not really sure we should use that strange timeStep crap that I made before, maybe replace it with lerp?
-			BDA_Functions_Generic.IncreaseAndThenDecrease(middleValue, endValue, timeStep, currentValToScale, hasReachedMiddleValue);
+			BDR_Functions_Generic.IncreaseAndThenDecrease(middleValue, endValue, timeStep, currentValToScale, hasReachedMiddleValue);
 			for(int i = 0; i < currentRagdoll.GetNumBones(); i++)
 			{
 				vector hitVector; //= {x, -y , z};		//z makes them spin 
 							
 				//Random for every loop.
 				float x = Math.RandomFloatInclusive(-currentValToScale, currentValToScale);
-				float y = BDA_Functions_Generic.Lerp(0.55, 2.5, 1, deltaTime);
+				float y = BDR_Functions_Generic.Lerp(0.55, 2.5, 1, deltaTime);
 				float z = Math.RandomFloatInclusive(-currentValToScale, currentValToScale);
 				
 				
@@ -441,7 +259,7 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 							testDividerNeg = 1;
 						
 						float testDividerPos = 1000 + (deltaTime * 150);
-						float valToScaleY = BDA_Functions_Generic.Lerp(1, 3, 15, deltaTime);
+						float valToScaleY = BDR_Functions_Generic.Lerp(1, 3, 15, deltaTime);
 						
 						y =  Math.RandomFloatInclusive(-valToScaleY/testDividerNeg , valToScaleY/testDividerPos);
 
@@ -474,8 +292,9 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 						break;
 					}
 					default:
-						{
+					{
 						hitVector = {0, -y, 0};		// Applies only gravity
+						break;
 
 					}
 				}
@@ -508,11 +327,11 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 		{
 			
 			
-			ManageDamping(lowerBodyBones, DEFAULT_MAIN_DAMPING);
+			ManageDamping(lowerBodyBones, defaultMainDamping);
 			
 			/* To make bodies go down faster we're gonna set an higher mass for every bone. We'll use the spine mass as a reference */
 			foreach(CharacterBones x : lowerBodyBonesAndSpine)
-				currentRagdoll.GetBoneRigidBody(x).SetMass(originalMasses[CharacterBones.SPINE]);
+				currentRagdoll.GetBoneRigidBody(x).SetMass(modifiedMassFastDeath);
 			
 
 			float x;
@@ -536,7 +355,7 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 					z = 0;
 				}
 
-				y = BDA_Functions_Generic.Lerp(0.0001, 0.025, 0.5, deltaTime);
+				y = BDR_Functions_Generic.Lerp(0.0001, 0.025, 0.5, deltaTime);
 				if (i == CharacterBones.LFOREARM || i == CharacterBones.RFOREARM)
 					y -= 0.018;
 				
@@ -555,19 +374,7 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 		counterLoopFastRagdollDeath++;
 	}
 	
-	
-	
-	void HeadDismemberment()
-	{
-				
-			
-			// We can use this for head dismemberment... not sure about other stuff
-			//CharacterIdentityComponent identity = CharacterIdentityComponent.Cast(GetCharacter().FindComponent(CharacterIdentityComponent));
-			//identity.SetCovered(hitZoneName, false);
-	}
-	
-	
-	
+
 
 	bool isCharacterInAcceptablePosition = true;		//default true
 	bool TestPosition(notnull IEntity ent)
@@ -595,6 +402,240 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 			currentRagdoll.GetBoneRigidBody(x).SetDamping(newDamping, newDamping);
 		
 	}
+	
+	
+	
+	
+	
+	// NETWORK STUFF 
+
+	
+	[RplRpc(RplChannel.Unreliable, RplRcver.Broadcast)]
+	void RpcAsk_MainMethodBroadcast()
+	{
+		ManageRagdoll();
+	}
+	
+	
+	[RplRpc(RplChannel.Unreliable, RplRcver.Server)]
+	void RpcAsk_MainMethodAuthority()
+	{
+		ManageRagdoll();
+	}
+	
+	void ManageRagdoll()
+	{
+			
+		// Get the player stuff. We'll do it here 'cause we can't rely on OnInit since it could have changed. 
+		SCR_PlayerController m_playerController = SCR_PlayerController.Cast(GetGame().GetPlayerController());
+		CharacterControllerComponent m_playerCharacterControllerComponent = CharacterControllerComponent.Cast(m_playerController.GetControlledEntity().FindComponent(CharacterControllerComponent));
+
+		
+		// Players won't receive it for various reasons. At least for now.
+		if (m_playerCharacterControllerComponent != m_characterControllerComponent)
+		{
+
+			// Get Last Hit
+			array<vector> lastHitArray = m_characterDamageManagerComponent.GetLastHitCoordinates();
+			vector lastHitDirection = {lastHitArray[1][0], lastHitArray[1][1], lastHitArray[1][2]};		// for some reason I can't assign a vec to a vec so whatever
+			vector hitVector = {lastHitDirection[0], lastHitDirection[1]/5, lastHitDirection[2]};		// y stays the same since we want a little more oomph
+			vector hitPosition = {lastHitArray[0][0], lastHitArray[0][1], lastHitArray[0][2]};
+			float lastHitSpeed = m_characterDamageManagerComponent.GetLastHitSpeed();
+			
+			HitZone hitZone = m_characterDamageManagerComponent.GetLastHitZone();
+			vector hitToApply;		
+			string hitZoneName;
+
+			
+						
+			
+			/* We need to consider moving characters, so let's just sum those two vectors and then manage it later.
+			Consider that damping must not be as aggressive as when the character is not moving.*/
+			vector movementVelocity = m_characterControllerComponent.GetMovementVelocity();
+			hitVector += movementVelocity;		
+
+			
+			
+			
+			/*
+			Print(m_characterControllerComponent.GetMovementVelocity());
+			Print(hitVector);
+			Print("After considering char velocity");
+			Print(hitVector);
+			Print("______________________");
+			*/
+			
+			if (hitZone)
+			{
+				int hitZoneColliderID = m_characterDamageManagerComponent.GetLastColliderID();
+				hitZoneName = hitZone.GetName();
+
+				//Print(hitZoneName);
+				switch(hitZoneName)
+				{
+	
+					case TAG_HITZONE_LCALF:
+					case TAG_HITZONE_RCALF:
+					case TAG_HITZONE_LTHIGH:
+					case TAG_HITZONE_RTHIGH:
+					{
+						hitToApply = hitVector/5;
+						break;
+					}
+					case TAG_HITZONE_HIPS:
+					case TAG_HITZONE_ABDOMEN:
+					{
+						hitToApply = hitVector/3;
+						break;
+					}
+
+					case TAG_HITZONE_HEAD:
+					case TAG_HITZONE_NECK:
+					{
+
+						hitToApply = hitVector/15;
+						break;
+					}
+					case TAG_HITZONE_CHEST:
+					{
+						hitToApply = hitVector/4;
+						break;
+					}
+					case TAG_HITZONE_RARM:
+					case TAG_HITZONE_LARM:
+					{
+						hitToApply = hitVector/12;
+						break;
+					}
+					
+					default:
+					{
+						hitToApply = hitVector/3;
+						break;		
+					}
+				
+				}	
+			}
+			else
+			{
+				// If a character dies by falling orby getting hit by a car, there will be no hitzone. 
+				hitToApply = hitVector/20;		
+				hitZoneName = "";
+			}
+			
+			
+
+
+			
+			/* Preventing feet to clip in the ground. Still a pretty jank solution but whatever*/
+			GetGame().GetWorld().QueryEntitiesBySphere(GetCharacter().GetOrigin(), 0.1, TestPosition, null, EQueryEntitiesFlags.STATIC);
+			if (isCharacterInAcceptablePosition)
+			{
+				vector characterOrigin = GetCharacter().GetOrigin();
+				float surfWorldY = GetGame().GetWorld().GetSurfaceY(characterOrigin[0], characterOrigin[2]);
+				float differenceY = Math.AbsFloat(characterOrigin[1] - surfWorldY);
+				float safetyY = 0.05;		
+				if( differenceY >= 0.0005)
+				{
+					vector matrixTransform[4];
+					GetCharacter().GetTransform(matrixTransform);
+					matrixTransform[3] = Vector(matrixTransform[3][0], matrixTransform[3][1] + differenceY + safetyY, matrixTransform[3][2]);
+					GetCharacter().SetTransform(matrixTransform);
+	
+				}
+			}
+
+			
+			
+			/* Manages the ragdoll stuff, gravity, forces, etc. */
+			currentRagdoll = BDR_Functions_Generic.RegenPhysicsRagdoll(GetCharacter());
+			m_characterControllerComponent.Ragdoll();
+			
+			
+			
+			//Apply gravity
+			float gravityToApply = 0;
+			originalMasses = new array<float>;
+			for(int i = 0; i < currentRagdoll.GetNumBones(); i++)
+			{	
+				originalMasses.Insert(currentRagdoll.GetBoneRigidBody(i).GetMass());
+				switch(i)
+				{
+					case CharacterBones.LCALF:
+					case CharacterBones.RCALF:
+					case CharacterBones.RFOOT:
+					case CharacterBones.LFOOT:
+					{
+						
+						//todo clean this shit
+								
+						if (movementVelocity.Length() < 0.05)
+							currentRagdoll.GetBoneRigidBody(i).SetDamping(modifiedSecondaryDamping ,modifiedSecondaryDamping);
+						else
+							currentRagdoll.GetBoneRigidBody(i).SetDamping(modifiedSecondaryDampingWhileMoving, modifiedSecondaryDampingWhileMoving);
+						
+						currentRagdoll.GetBoneRigidBody(i).SetMass(10);
+
+												
+						break;
+
+
+					}
+					default:
+					{
+						gravityToApply = -9.81;		
+						break;
+					}
+				
+				}
+			
+				currentRagdoll.GetBoneRigidBody(i).ApplyForce(Vector(0, gravityToApply, 0));		
+			}
+						
+
+			//Applies impulses
+			currentRagdoll.GetBoneRigidBody(0).ApplyImpulseAt(hitPosition, hitToApply);		
+			int waitTime = Math.RandomIntInclusive(20, 50);
+			
+			
+			
+			if (hitZoneName == TAG_HITZONE_HEAD)
+				GetGame().GetCallqueue().CallLater(WaitSecondaryScriptFastRagdollDeath, waitTime, false);		// Special case for headshots, basically "instakill"
+			else
+				GetGame().GetCallqueue().CallLater(WaitSecondaryScriptPushRagdollAround, waitTime, false);		
+			
+
+
+			
+			#ifdef DEBUG_PAO
+			Print("Velocity del body");
+			Print(currentRagdoll.GetBoneRigidBody(0).GetVelocity());
+			Print("last hit array");
+			
+			Print(lastHitArray[0]);
+			Print(lastHitArray[1]);
+			Print(lastHitArray[2]);
+			Print("+____________________________");			
+			#endif
+			
+			
+
+		}
+		else
+		{
+			SCR_CharacterCommandHandlerComponent characterCommandHandlerComponent = BDR_Functions_Generic.FindCommandHandler(GetCharacter());
+			//We need the CharacterInputContext for the player
+			CharacterInputContext m_characterInputContext = m_playerCharacterControllerComponent.GetInputContext();
+			float dyingDirection = m_characterInputContext.GetDie();
+			
+			if (dyingDirection != 0.0)
+				characterCommandHandlerComponent.StartCommand_Death(dyingDirection);
+
+		}
+		
+		
+	}
+	
 
 	
 	

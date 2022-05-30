@@ -1,0 +1,16 @@
+FrameWidgetClass "{5520803CC276C4EA}" : "{1D6A0D44F647D7AC}UI/layouts/Menus/Dialogs/ConfirmationDialog.layout" {
+ Name "rootFrame0"
+ Slot FrameWidgetSlot "{5520803CC276C407}" {
+  Anchor 0 0 1 1
+  PositionX 0
+  OffsetLeft 0
+  PositionY 0
+  OffsetTop 0
+  SizeX -1440
+  OffsetRight 0
+  SizeY -832
+  OffsetBottom 0
+ }
+ {
+ }
+}

@@ -231,6 +231,12 @@ CameraManager CameraManager1 {
 TimeAndWeatherManagerEntity {
  coords 445.844 9.649 171.965
 }
+SCR_FactionManager FactionManager_USxUSSR1 : "{589540B35EBA8CDC}Prefabs/MP/Managers/Factions/FactionManager_USxUSSR.et" {
+ coords 441.675 2.001 167.153
+}
+SCR_GameModeEditor GameMode_Editor1 : "{D2DE7F43D48A3667}Prefabs/MP/Modes/Editor/GameMode_Editor.et" {
+ coords 441.388 2.001 160.858
+}
 CameraBase CameraBase1 {
  coords 70.647 -0.655 37.569
 }
@@ -290,6 +296,9 @@ Vehicle M1 : "{4A71F755A4513227}Prefabs/Vehicles/Wheeled/M998/M1025.et" {
   }
  }
  coords 314.835 3.206 209.563
+}
+SCR_SpawnPoint : "{4FEA25583D0975F7}Prefabs/MP/Spawning/SpawnPoint_USSR.et" {
+ coords 442.649 2.001 160.594
 }
 $grp Tree : "{616D6371AEB1D799}Prefabs/Vegetation/Tree/t_betula_pendula_2t.et" {
  {
@@ -758,6 +767,9 @@ $grp Tree : "{87BE91E8E84DA493}Prefabs/Vegetation/Tree/t_alnus_glutinosa_2s.et" 
  {
   coords 401.665 -0.655 195.296
  }
+}
+SCR_LoadoutManager : "{97EF4C1A41F63DDB}Prefabs/MP/Managers/Loadouts/LoadoutManager_USxUSSR.et" {
+ coords 443.92 2.001 166.925
 }
 $grp Tree : "{A5DE58FC9FB6BA60}Prefabs/Vegetation/Bush/b_corylus_avellana_2.et" {
  {

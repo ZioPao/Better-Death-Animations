@@ -1,4 +1,4 @@
-class BDA_Functions_Generic
+class BDR_Functions_Generic
 {
 	
 	
@@ -87,7 +87,7 @@ class BDA_Functions_Generic
 
 
 
-class BDA_Timer
+class BDR_Timer
 {
 		
 	private float startTime;
@@ -135,6 +135,22 @@ enum CharacterBones{
 	LFOOT		//12
 }
 
+class BDR_Dismemberment
+{
 
+		
+	
+	void HeadDismemberment()
+	{
+				
+			
+			// We can use this for head dismemberment... not sure about other stuff
+			//CharacterIdentityComponent identity = CharacterIdentityComponent.Cast(GetCharacter().FindComponent(CharacterIdentityComponent));
+			//identity.SetCovered(hitZoneName, false);
+	}
+	
+	
+	
+}
 
 
