@@ -1,0 +1,16 @@
+Particle {
+ Color 0.03 0.03 0.03 1
+ AlbedoMap "{FCCDB8EB69CD54BD}Particles/_Textures/Blood_Animation_BCA.edds"
+ NormalMap "{009A8474EC680BA8}Particles/_Textures/Blood_Animation_N.edds"
+ ReceiveShadow 1
+ ReceiveProbesLighting 1
+ ReceiveLights 1
+ AlphaMul 5
+ TileU 2500
+ TileV 1857
+ NormalMapPower 0.54
+ NormalStretching 0
+ Softness 2
+ CameraBlendNear 0.5
+ CameraBlendFar 1.5
+}

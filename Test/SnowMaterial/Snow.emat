@@ -1,0 +1,12 @@
+TerrainMaterial {
+ SurfaceProperties "{FE24E6E953882D60}Common/Materials/Game/ice.gamemat"
+ BCRMap "{22D377CD605FEC63}Test/SnowMaterial/Snow_BCR.edds"
+ NHOMap "{05E43C896319AA74}Test/SnowMaterial/Snow_NHO.edds"
+ ScaleUV 1.114
+ ParallaxScale 0.08
+ SatMapBlend 0.24
+ DetailMaxDistance 92.978
+ WaterAccumDetail 1.969
+ WaterAccumMiddle 2.074
+ WetnessFadeSize 1519.663
+}
