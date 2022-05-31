@@ -112,8 +112,7 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 		if (m_OnPlayerDeathWithParam)
 			m_OnPlayerDeathWithParam.Invoke(this, instigator);
 
-		Rpc(RpcAsk_MainMethodBroadcast);
-		Rpc(RpcAsk_MainMethodAuthority);
+		Rpc(RpcAsk_MainMethod);
 		//RpcAsk_MainMethod();
 		
 		//will it work?
@@ -410,24 +409,56 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 	// NETWORK STUFF 
 
 	
-	[RplRpc(RplChannel.Unreliable, RplRcver.Broadcast)]
-	void RpcAsk_MainMethodBroadcast()
+	
+	
+	//
+	[RplRpc(RplChannel.Reliable, RplRcver.Server)]
+	void RpcAsk_MainMethod()
+	{
+		array<int> playerIds = new array<int>();
+		GetGame().GetPlayerManager().GetPlayers(playerIds);
+		
+		
+		if (playerIds.Count() > 1)
+			Rpc(RpcAsk_BroadcastMethod);
+		else
+			ManageRagdoll();
+		//ManageRagdoll();
+
+
+	}
+	
+	
+	[RplRpc(RplChannel.Reliable, RplRcver.Broadcast)]
+	void RpcAsk_BroadcastMethod()
 	{
 		ManageRagdoll();
 	}
 	
-	
-	[RplRpc(RplChannel.Unreliable, RplRcver.Server)]
-	void RpcAsk_MainMethodAuthority()
+	[RplRpc(RplChannel.Reliable, RplRcver.Owner)]
+	void RpcAsk_OwnerMethod()
 	{
+		Print("Owner method. Will run only on owner");
+		SCR_PlayerController t1 = SCR_PlayerController.Cast(GetGame().GetPlayerController());
+
+		CharacterControllerComponent t2 = CharacterControllerComponent.Cast(t1.GetControlledEntity().FindComponent(CharacterControllerComponent));
 		ManageRagdoll();
+
 	}
+
 	
 	void ManageRagdoll()
 	{
 			
 		// Get the player stuff. We'll do it here 'cause we can't rely on OnInit since it could have changed. 
 		SCR_PlayerController m_playerController = SCR_PlayerController.Cast(GetGame().GetPlayerController());
+		
+		
+		if (!m_playerController)
+			return;			//maybe it'll help?
+		
+		// how the fuck do we check if it's auth or not 
+		 
 		CharacterControllerComponent m_playerCharacterControllerComponent = CharacterControllerComponent.Cast(m_playerController.GetControlledEntity().FindComponent(CharacterControllerComponent));
 
 		
