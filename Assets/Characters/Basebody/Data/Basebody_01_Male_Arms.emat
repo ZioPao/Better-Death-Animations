@@ -1,7 +1,0 @@
-MatPBRBasic {
- ZEnable 0
- ZWrite 0
- BlendMode AlphaBlend
- BCRMap "{7E399D0A8C928034}Assets/Characters/Basebody/Data/Arms_BCR.edds"
- NMOMap "{46E1269855E5D2AA}Assets/Characters/Basebody/Data/Arms_NMO.edds"
-}

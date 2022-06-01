@@ -16,11 +16,7 @@
 
 
 
-modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
-		
-	
-
-	
+modded class SCR_CharacterControllerComponent : CharacterControllerComponent{	
 	const string TAG_HITZONE_HEAD = "Head";
 	const string TAG_HITZONE_LCALF = "LCalf";
 	const string TAG_HITZONE_RCALF = "RCalf";
@@ -32,27 +28,6 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 	const string TAG_HITZONE_RARM = "RArm";
 	const string TAG_HITZONE_HIPS = "Hips";
 	const string TAG_HITZONE_ABDOMEN = "Abdomen";
-	
-	
-	
-	[Attribute(defvalue: "0.00000001", uiwidget: UIWidgets.Slider, params: "0 1.0 0.00001", precision: 24, desc: "test", category: "Ragdoll")]
-	private float defaultMainDamping;
-	private float defaultMainDampingSub = 1 - defaultMainDamping;
-
-	
-	[Attribute(defvalue: "0.1", uiwidget: UIWidgets.Slider, params: "0 1.0 0.00001", precision: 24, desc: "Test", category: "Ragdoll")]
-	private float defaultSecondaryDamping;
-	private float defaultSecondaryDampingSub = 1 - defaultSecondaryDamping;
-	
-	
-	[Attribute(defvalue: "1", uiwidget: UIWidgets.Slider, params: "0 1.0 0.00001", precision: 24, desc: "Test", category: "Ragdoll")]
-	private float modifiedSecondaryDamping;
-	
-	[Attribute(defvalue: "0.75", uiwidget: UIWidgets.Slider, params: "0 1.0 0.00001", precision: 24, desc: "Test", category: "Ragdoll")]
-	private float modifiedSecondaryDampingWhileMoving;
-	
-	[Attribute(defvalue: "0.297619", uiwidget: UIWidgets.Slider, params: "0 1.0 000001", precision: 24, desc: "TEST", category: "Ragdoll")]
-	private float modifiedMassFastDeath;
 	
 
 	
@@ -69,7 +44,66 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 	ref array<CharacterBones> lowerBodyBones = new array<CharacterBones>;
 	ref array<CharacterBones> lowerBodyBonesAndSpine = new array<CharacterBones>;
 
+	//void GetAttributes()
+	//{
+	//	SCR_BaseEditorAttribute attribute;
+	//	for (int i = 0, count = this.GetAttributesCount(); i < count; i++)
+	//		attribute = this.GetAttribute(i);
+	//}
+	
+	
+	
+	
+	
+	
+	float defaultMainDamping;
+	float defaultSecondaryDamping;
+	float modifiedSecondaryDamping;
+	float modifiedSecondaryDampingWhileMoving;
+	float modifiedMassFastDeath;
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	ref MCF_JsonManager mcfJson;
+	
+	
+	
+	void SetDefaultValues()
+	{
+		
+		/*
+		defaultMainDamping = 0.00000001;
+		defaultSecondaryDamping = 0.1;
+	  	modifiedSecondaryDamping = 1;
+		modifiedSecondaryDampingWhileMoving = 0.75;
+		modifiedMassFastDeath = 0.297619;*/
+	
+		map<string, string> tempMap = new map<string, string>();
+		
+		tempMap.Set("defaultMainDamping", "0.00000001");
+		tempMap.Set("defaultSecondaryDamping", "0.1");
+		tempMap.Set("modifiedSecondaryDamping", "1.0");
+		tempMap.Set("modifiedSecondaryDampingWhileMoving","0.75");
+		tempMap.Set("modifiedMassFastDeath", "0.297619");
+		
+		mcfJson.RegisterMap(tempMap, "float");
+	
 
+		
+	}
+	
+	
+	
 	
 	override void OnInit(IEntity owner)
 	{
@@ -99,7 +133,48 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 		
 		lowerBodyBonesAndSpine.InsertAll(lowerBodyBones);
 		lowerBodyBonesAndSpine.Insert(CharacterBones.SPINE);
-	
+		
+				
+		
+		
+		// SETTINGS TEST
+		MCF_SettingsManager mcfSettingsManager = MCF_SettingsManager.GetInstance();
+		
+		string fileNameJson = "BDR_Settings.json";
+		mcfJson = new MCF_JsonManager(fileNameJson);
+		map<string, string> settings = new map<string, string>;
+		
+
+		if (!mcfJson.LoadFromFile(fileNameJson))
+			SetDefaultValues();	
+
+		map<string, string> variablesTemp;
+		settings = mcfJson.GetMapFromJson();
+
+
+		defaultMainDamping = settings.Get("defaultMainDamping").ToFloat();
+		defaultSecondaryDamping = settings.Get("defaultSecondaryDamping").ToFloat();
+		defaultSecondaryDamping = settings.Get("modifiedSecondaryDamping").ToFloat();
+		modifiedSecondaryDamping = settings.Get("modifiedSecondaryDampingWhileMoving").ToFloat();
+		modifiedMassFastDeath = settings.Get("modifiedMassFastDeath").ToFloat();
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		const string MOD_ID = "596CE5149F3F702A";				//it's probably possible to get this in a better way but ok
+		mcfSettingsManager.AddJsonManager(MOD_ID, mcfJson);
+
+
+
+		
+		
+
 	}
 	
 
@@ -113,9 +188,7 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 			m_OnPlayerDeathWithParam.Invoke(this, instigator);
 
 		Rpc(RpcAsk_MainMethod);
-		//RpcAsk_MainMethod();
-		
-		//will it work?
+
 		
 
 		if (SCR_PlayerController.Cast(GetGame().GetPlayerController()) && m_CameraHandler && m_CameraHandler.IsInThirdPerson())
@@ -209,7 +282,7 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 			
 			//Set all the damping stuff
 			float dampingDuration = 0.2;
-			float dampingToSet = modifiedSecondaryDamping - BDR_Functions_Generic.Lerp(0.0, defaultSecondaryDampingSub, dampingDuration, deltaTime);
+			float dampingToSet = modifiedSecondaryDamping - BDR_Functions_Generic.Lerp(0.0, 1 - defaultSecondaryDamping, dampingDuration, deltaTime);
 			ManageDamping(lowerBodyBones, dampingToSet);
 
 			
@@ -601,7 +674,7 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 						//todo clean this shit
 								
 						if (movementVelocity.Length() < 0.05)
-							currentRagdoll.GetBoneRigidBody(i).SetDamping(modifiedSecondaryDamping ,modifiedSecondaryDamping);
+							currentRagdoll.GetBoneRigidBody(i).SetDamping(modifiedSecondaryDamping, modifiedSecondaryDamping);
 						else
 							currentRagdoll.GetBoneRigidBody(i).SetDamping(modifiedSecondaryDampingWhileMoving, modifiedSecondaryDampingWhileMoving);
 						
@@ -667,6 +740,9 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 		
 	}
 	
+	
+	
+
 
 	
 	

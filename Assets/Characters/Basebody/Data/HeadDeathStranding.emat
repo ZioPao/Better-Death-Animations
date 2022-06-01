@@ -1,8 +1,0 @@
-MatPBRBasic {
- Color 0 0 0 1
- AllowUserAlphaBias 1
- DisableUserAphaInShadow 1
- BCRMap "{63CFD559F6DC8A69}Assets/Characters/Basebody/Data/Head_BCR.edds"
- OpacityMap "{70A53F4EA373F142}Assets/Characters/Basebody/Data/HeadClipping_A.edds"
- NMOMap "{5B176ECB2FABD8F7}Assets/Characters/Basebody/Data/Head_NMO.edds"
-}
