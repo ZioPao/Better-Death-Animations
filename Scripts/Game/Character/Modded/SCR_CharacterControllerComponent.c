@@ -62,6 +62,8 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 	float modifiedSecondaryDampingWhileMoving;
 	float modifiedMassFastDeath;
 	
+	bool activateHitImpact;
+	
 	
 	
 	
@@ -78,29 +80,30 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 	
 	
 	
-	void SetDefaultValues()
-	{
-		
-		/*
-		defaultMainDamping = 0.00000001;
-		defaultSecondaryDamping = 0.1;
-	  	modifiedSecondaryDamping = 1;
-		modifiedSecondaryDampingWhileMoving = 0.75;
-		modifiedMassFastDeath = 0.297619;*/
 	
-		map<string, string> tempMap = new map<string, string>();
-		
-		tempMap.Set("defaultMainDamping", "0.00000001");
-		tempMap.Set("defaultSecondaryDamping", "0.1");
-		tempMap.Set("modifiedSecondaryDamping", "1.0");
-		tempMap.Set("modifiedSecondaryDampingWhileMoving","0.75");
-		tempMap.Set("modifiedMassFastDeath", "0.297619");
-		
-		mcfJson.RegisterMap(tempMap, "float");
+	
+	
+	
+	
 	
 
-		
-	}
+
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	
 	
 	
@@ -136,44 +139,37 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 		
 				
 		
-		
-		// SETTINGS TEST
+		/* Settings initialization stuff */
 		MCF_SettingsManager mcfSettingsManager = MCF_SettingsManager.GetInstance();
 		
-		string fileNameJson = "BDR_Settings.json";
-		mcfJson = new MCF_JsonManager(fileNameJson);
-		map<string, string> settings = new map<string, string>;
+		const string fileNameJson = "BDR_Settings.json";
+		const string MOD_ID = "596CE5149F3F702A";				//it's probably possible to get this in a better way but ok
 		
+		
+		map<string, string> mapDefaultValues = new map<string, string>();
+		mapDefaultValues.Set("defaultMainDamping", "0.00000001");
+		mapDefaultValues.Set("defaultSecondaryDamping", "0.1");
+		mapDefaultValues.Set("modifiedSecondaryDamping", "1.0");
+		mapDefaultValues.Set("modifiedSecondaryDampingWhileMoving","0.75");
+		mapDefaultValues.Set("modifiedMassFastDeath", "0.297619");
+		mapDefaultValues.Set("activateHitImpact", "1");
+		
+		array<string> userFriendlyNames = {"Minimal Base Damping", "Modified Base Damping", "Modified Secondary Damping", "Modified Secondary Damping While Moving", "Modified Mass with Headshots", "Activate hit on impact"};
 
-		if (!mcfJson.LoadFromFile(fileNameJson))
-			SetDefaultValues();	
-
-		map<string, string> variablesTemp;
-		settings = mcfJson.GetMapFromJson();
-
-
+		
+		/* Setup linking variables */
+		map<string, string> settings = mcfSettingsManager.Setup(MOD_ID, fileNameJson, mapDefaultValues, userFriendlyNames);
 		defaultMainDamping = settings.Get("defaultMainDamping").ToFloat();
 		defaultSecondaryDamping = settings.Get("defaultSecondaryDamping").ToFloat();
 		defaultSecondaryDamping = settings.Get("modifiedSecondaryDamping").ToFloat();
 		modifiedSecondaryDamping = settings.Get("modifiedSecondaryDampingWhileMoving").ToFloat();
 		modifiedMassFastDeath = settings.Get("modifiedMassFastDeath").ToFloat();
+		activateHitImpact = settings.Get("activateHitImpact").ToInt();
 		
 		
-		
-		
-		
-		
-		
-		
-		
-		
-		const string MOD_ID = "596CE5149F3F702A";				//it's probably possible to get this in a better way but ok
 		mcfSettingsManager.AddJsonManager(MOD_ID, mcfJson);
-
-
-
 		
-		
+		/////////////////////////////////////////////////////////////////////////////
 
 	}
 	
@@ -540,93 +536,107 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 		{
 
 			// Get Last Hit
+			
+					
+			/* We need to consider moving characters, so let's just sum those two vectors and then manage it later.
+			Consider that damping must not be as aggressive as when the character is not moving.*/
+			vector movementVelocity = m_characterControllerComponent.GetMovementVelocity();
+			
+			
 			array<vector> lastHitArray = m_characterDamageManagerComponent.GetLastHitCoordinates();
 			vector lastHitDirection = {lastHitArray[1][0], lastHitArray[1][1], lastHitArray[1][2]};		// for some reason I can't assign a vec to a vec so whatever
 			vector hitVector = {lastHitDirection[0], lastHitDirection[1]/5, lastHitDirection[2]};		// y stays the same since we want a little more oomph
 			vector hitPosition = {lastHitArray[0][0], lastHitArray[0][1], lastHitArray[0][2]};
-			float lastHitSpeed = m_characterDamageManagerComponent.GetLastHitSpeed();
-			
 			HitZone hitZone = m_characterDamageManagerComponent.GetLastHitZone();
-			vector hitToApply;		
+		
+			vector hitToApply;
 			string hitZoneName;
 
-			
-						
-			
-			/* We need to consider moving characters, so let's just sum those two vectors and then manage it later.
-			Consider that damping must not be as aggressive as when the character is not moving.*/
-			vector movementVelocity = m_characterControllerComponent.GetMovementVelocity();
-			hitVector += movementVelocity;		
-
-			
-			
-			
-			/*
-			Print(m_characterControllerComponent.GetMovementVelocity());
-			Print(hitVector);
-			Print("After considering char velocity");
-			Print(hitVector);
-			Print("______________________");
-			*/
-			
-			if (hitZone)
+			if (activateHitImpact)
 			{
-				int hitZoneColliderID = m_characterDamageManagerComponent.GetLastColliderID();
-				hitZoneName = hitZone.GetName();
 
-				//Print(hitZoneName);
-				switch(hitZoneName)
-				{
-	
-					case TAG_HITZONE_LCALF:
-					case TAG_HITZONE_RCALF:
-					case TAG_HITZONE_LTHIGH:
-					case TAG_HITZONE_RTHIGH:
-					{
-						hitToApply = hitVector/5;
-						break;
-					}
-					case TAG_HITZONE_HIPS:
-					case TAG_HITZONE_ABDOMEN:
-					{
-						hitToApply = hitVector/3;
-						break;
-					}
 
-					case TAG_HITZONE_HEAD:
-					case TAG_HITZONE_NECK:
-					{
+				hitVector += movementVelocity;		
 
-						hitToApply = hitVector/15;
-						break;
-					}
-					case TAG_HITZONE_CHEST:
-					{
-						hitToApply = hitVector/4;
-						break;
-					}
-					case TAG_HITZONE_RARM:
-					case TAG_HITZONE_LARM:
-					{
-						hitToApply = hitVector/12;
-						break;
-					}
-					
-					default:
-					{
-						hitToApply = hitVector/3;
-						break;		
-					}
+				/*
+				Print(m_characterControllerComponent.GetMovementVelocity());
+				Print(hitVector);
+				Print("After considering char velocity");
+				Print(hitVector);
+				Print("______________________");
+				*/
+
 				
-				}	
+				if (hitZone)
+				{
+					int hitZoneColliderID = m_characterDamageManagerComponent.GetLastColliderID();
+					hitZoneName = hitZone.GetName();
+	
+					//Print(hitZoneName);
+					switch(hitZoneName)
+					{
+		
+						case TAG_HITZONE_LCALF:
+						case TAG_HITZONE_RCALF:
+						case TAG_HITZONE_LTHIGH:
+						case TAG_HITZONE_RTHIGH:
+						{
+							hitToApply = hitVector/5;
+							break;
+						}
+						case TAG_HITZONE_HIPS:
+						case TAG_HITZONE_ABDOMEN:
+						{
+							hitToApply = hitVector/3;
+							break;
+						}
+	
+						case TAG_HITZONE_HEAD:
+						case TAG_HITZONE_NECK:
+						{
+	
+							hitToApply = hitVector/15;
+							break;
+						}
+						case TAG_HITZONE_CHEST:
+						{
+							hitToApply = hitVector/4;
+							break;
+						}
+						case TAG_HITZONE_RARM:
+						case TAG_HITZONE_LARM:
+						{
+							hitToApply = hitVector/12;
+							break;
+						}
+						
+						default:
+						{
+							hitToApply = hitVector/3;
+							break;		
+						}
+					
+					}	
+				}
+				else
+				{
+					// If a character dies by falling orby getting hit by a car, there will be no hitzone. 
+					hitToApply = hitVector/20;		
+					hitZoneName = "";
+				}
+			
+			
 			}
 			else
 			{
-				// If a character dies by falling orby getting hit by a car, there will be no hitzone. 
-				hitToApply = hitVector/20;		
+				hitToApply = {0,0,0};
 				hitZoneName = "";
 			}
 			
+			
+			
+			
+	
 			
 
 
