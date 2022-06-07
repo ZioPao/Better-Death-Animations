@@ -1,0 +1,6 @@
+SubScene {
+ Parent "{BEF094A5F7F3211B}worlds/GameMaster/GM_Eden.ent"
+}
+Layer default {
+ Index 0
+}

@@ -44,17 +44,6 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 	ref array<CharacterBones> lowerBodyBones = new array<CharacterBones>;
 	ref array<CharacterBones> lowerBodyBonesAndSpine = new array<CharacterBones>;
 
-	//void GetAttributes()
-	//{
-	//	SCR_BaseEditorAttribute attribute;
-	//	for (int i = 0, count = this.GetAttributesCount(); i < count; i++)
-	//		attribute = this.GetAttribute(i);
-	//}
-	
-	
-	
-	
-	
 	
 	float defaultMainDamping;
 	float defaultSecondaryDamping;
@@ -65,62 +54,27 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 	bool activateHitImpact;
 	
 	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
+
 	
 	ref MCF_JsonManager mcfJson;
-	
-	
-	
-	
-	
-	
-	
-	
-	
+	ref map<string, string> bdrSettings
 
-
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
+	//ref array<ref Shape> debugShapesBDR;
 	
 	override void OnInit(IEntity owner)
 	{
+		
+		super.OnInit(owner);
+		
+		
+		
+		//debugShapesBDR = new array<ref Shape>;
+		
+		
 		ChimeraCharacter character = GetCharacter();
 		if (!character)
 			return;
 		
-		if (!m_WeaponManager)
-			m_WeaponManager = BaseWeaponManagerComponent.Cast(character.FindComponent(BaseWeaponManagerComponent));
-
-		if (!m_MeleeComponent)
-			m_MeleeComponent = SCR_MeleeComponent.Cast(character.FindComponent(SCR_MeleeComponent));
-		if (!m_CameraHandler)
-			m_CameraHandler = SCR_CharacterCameraHandlerComponent.Cast(character.FindComponent(SCR_CharacterCameraHandlerComponent));
 		if (!m_characterControllerComponent)
 			m_characterControllerComponent = CharacterControllerComponent.Cast(character.FindComponent(CharacterControllerComponent));
 		if (!m_characterDamageManagerComponent)
@@ -128,7 +82,6 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 		if (!timer)
 			timer = new BDR_Timer();
 		
-		//lowerBodyBones.Insert(CharacterBones.SPINE);			//not sure about this
 		lowerBodyBones.Insert(CharacterBones.LCALF);
 		lowerBodyBones.Insert(CharacterBones.RCALF);
 		lowerBodyBones.Insert(CharacterBones.RFOOT);
@@ -137,84 +90,65 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 		lowerBodyBonesAndSpine.InsertAll(lowerBodyBones);
 		lowerBodyBonesAndSpine.Insert(CharacterBones.SPINE);
 		
-				
-		
-		/* Settings initialization stuff */
-		MCF_SettingsManager mcfSettingsManager = MCF_SettingsManager.GetInstance();
-		
-		const string fileNameJson = "BDR_Settings.json";
-		const string MOD_ID = "596CE5149F3F702A";				//it's probably possible to get this in a better way but ok
-		
-		
-		map<string, string> mapDefaultValues = new map<string, string>();
-		mapDefaultValues.Set("defaultMainDamping", "0.00000001");
-		mapDefaultValues.Set("defaultSecondaryDamping", "0.1");
-		mapDefaultValues.Set("modifiedSecondaryDamping", "1.0");
-		mapDefaultValues.Set("modifiedSecondaryDampingWhileMoving","0.75");
-		mapDefaultValues.Set("modifiedMassFastDeath", "0.297619");
-		mapDefaultValues.Set("activateHitImpact", "1");
-		
-		array<string> userFriendlyNames = {"Minimal Base Damping", "Modified Base Damping", "Modified Secondary Damping", "Modified Secondary Damping While Moving", "Modified Mass with Headshots", "Activate hit on impact"};
-
-		
-		/* Setup linking variables */
-		map<string, string> settings = mcfSettingsManager.Setup(MOD_ID, fileNameJson, mapDefaultValues, userFriendlyNames);
-		defaultMainDamping = settings.Get("defaultMainDamping").ToFloat();
-		defaultSecondaryDamping = settings.Get("defaultSecondaryDamping").ToFloat();
-		defaultSecondaryDamping = settings.Get("modifiedSecondaryDamping").ToFloat();
-		modifiedSecondaryDamping = settings.Get("modifiedSecondaryDampingWhileMoving").ToFloat();
-		modifiedMassFastDeath = settings.Get("modifiedMassFastDeath").ToFloat();
-		activateHitImpact = settings.Get("activateHitImpact").ToInt();
-		
-		
-		mcfSettingsManager.AddJsonManager(MOD_ID, mcfJson);
-		
-		/////////////////////////////////////////////////////////////////////////////
 
 	}
 	
 
 	override void OnDeath(IEntity instigator)
 	{
+		Print("BDR: OnDeath");
 
-		if (m_OnPlayerDeath != null)
-			m_OnPlayerDeath.Invoke();
-
-		if (m_OnPlayerDeathWithParam)
-			m_OnPlayerDeathWithParam.Invoke(this, instigator);
-
-		Rpc(RpcAsk_MainMethod);
-
+		/* Settings initialization stuff */
+		MCF_SettingsManager mcfSettingsManager = MCF_SettingsManager.GetInstance();
 		
-
-		if (SCR_PlayerController.Cast(GetGame().GetPlayerController()) && m_CameraHandler && m_CameraHandler.IsInThirdPerson())
-			SCR_PlayerController.Cast(GetGame().GetPlayerController()).m_bRetain3PV = true;
+		const string bdrFileNameJson = "BDR_Settings.json";
+		const string BDR_MOD_ID = "596CE5149F3F702A";				//it's probably possible to get this in a better way but ok
 		
-		// Insert the character and see if it held a weapon, if so, try adding that as well
-		GarbageManager garbageManager = GetGame().GetGarbageManager();
-		if (garbageManager)
+		
+		if (!mcfSettingsManager.GetJsonManager(BDR_MOD_ID))
 		{
-			garbageManager.Insert(GetCharacter());
 			
-			if (!m_WeaponManager)
-				return;
+			Print("BDR: Preparing MCF");
+			map<string, string> mapDefaultValues = new map<string, string>();
+			mapDefaultValues.Set("defaultMainDamping", "0.00000001");
+			mapDefaultValues.Set("defaultSecondaryDamping", "0.1");
+			mapDefaultValues.Set("modifiedSecondaryDamping", "1.0");
+			mapDefaultValues.Set("modifiedSecondaryDampingWhileMoving","0.75");
+			mapDefaultValues.Set("modifiedMassFastDeath", "0.297619");
+			mapDefaultValues.Set("activateHitImpact", "1");		//why tf this goes first?
 			
-			BaseWeaponComponent weaponOrSlot = m_WeaponManager.GetCurrentWeapon();
-			if (!weaponOrSlot)
-				return;
+			//todo currently bugged in MCF, need to manage it manually.
+			array<string> userFriendlyNames = { "Activate hit on impact", "Minimal Base Damping", "Modified Base Damping", "Modified Secondary Damping", "Modified Secondary Damping While Moving", "Modified Mass with Headshots"};
 			
-			IEntity weaponEntity;
-			WeaponSlotComponent slot = WeaponSlotComponent.Cast(weaponOrSlot);
-			if (slot)
-				weaponEntity = slot.GetWeaponEntity();
-			else
-				weaponEntity = weaponOrSlot.GetOwner();
-			
-			if (!weaponEntity)
-				return;
-			
-			garbageManager.Insert(weaponEntity);
+			/* Setup linking variables */
+			bdrSettings = mcfSettingsManager.Setup(BDR_MOD_ID, bdrFileNameJson, mapDefaultValues, userFriendlyNames);
+			mcfSettingsManager.AddJsonManager(BDR_MOD_ID, mcfJson);
+			Print("BDR: Added JSON Manager");
 		}
+		else if (!bdrSettings)
+		{
+			Print("BDR: Loading settings");
+			bdrSettings = mcfSettingsManager.GetModSettings(BDR_MOD_ID);
+			
+		
+		}
+		
+
+		
+		
+		defaultMainDamping = bdrSettings.Get("defaultMainDamping").ToFloat();
+		defaultSecondaryDamping = bdrSettings.Get("defaultSecondaryDamping").ToFloat();
+		defaultSecondaryDamping = bdrSettings.Get("modifiedSecondaryDamping").ToFloat();
+		modifiedSecondaryDamping = bdrSettings.Get("modifiedSecondaryDampingWhileMoving").ToFloat();
+		modifiedMassFastDeath = bdrSettings.Get("modifiedMassFastDeath").ToFloat();
+		activateHitImpact = bdrSettings.Get("activateHitImpact").ToInt();
+		
+		Print("BDR: Loaded Settings");
+		
+		Rpc(RpcAsk_MainMethod);
+		
+		super.OnDeath(instigator);
+
 		
 	}
 		
@@ -445,15 +379,24 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 
 
 	bool isCharacterInAcceptablePosition = true;		//default true
+	vector endRiskyPosition;
 	bool TestPosition(notnull IEntity ent)
 	{
 		
-		
-		if (!isCharacterInAcceptablePosition)
-			return true;
+
 		
 		isCharacterInAcceptablePosition = (ent.ClassName() != "SCR_DestructibleBuildingEntity") && (ent.ClassName() != "GenericEntity");
 		
+		
+		
+		
+		if (!isCharacterInAcceptablePosition)
+		{
+			
+			endRiskyPosition = ent.GetOrigin();		//wont work.
+			return false;
+
+		}
 		
 		return true;
 		
@@ -642,21 +585,31 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 
 			
 			/* Preventing feet to clip in the ground. Still a pretty jank solution but whatever*/
+			
+			// this will work ONLY for terrains, not objects. and for a good reason
 			GetGame().GetWorld().QueryEntitiesBySphere(GetCharacter().GetOrigin(), 0.1, TestPosition, null, EQueryEntitiesFlags.STATIC);
-			if (isCharacterInAcceptablePosition)
+			if (!isCharacterInAcceptablePosition)
 			{
+				Print("Character in a risky position");
 				vector characterOrigin = GetCharacter().GetOrigin();
-				float surfWorldY = GetGame().GetWorld().GetSurfaceY(characterOrigin[0], characterOrigin[2]);
-				float differenceY = Math.AbsFloat(characterOrigin[1] - surfWorldY);
+				vector positionRiskyObject = endRiskyPosition;			//not necessary.
+				
+				
+				float differenceY = Math.AbsFloat(characterOrigin[1] - positionRiskyObject[1]);
 				float safetyY = 0.05;		
-				if( differenceY >= 0.0005)
+				if( differenceY >= 10)		//this is totally wrong but hey it works better than before :) 
 				{
+					Print("Fixing char position to compensate");
 					vector matrixTransform[4];
 					GetCharacter().GetTransform(matrixTransform);
-					matrixTransform[3] = Vector(matrixTransform[3][0], matrixTransform[3][1] + differenceY + safetyY, matrixTransform[3][2]);
+					matrixTransform[3] = Vector(matrixTransform[3][0], matrixTransform[3][1] + safetyY, matrixTransform[3][2]);
 					GetCharacter().SetTransform(matrixTransform);
 	
 				}
+				
+				
+				//float surfWorldY = GetGame().GetWorld().GetSurfaceY(characterOrigin[0], characterOrigin[2]);
+	
 			}
 
 			
@@ -737,13 +690,38 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 		}
 		else
 		{
+			m_characterControllerComponent.ForceDeath();
 			SCR_CharacterCommandHandlerComponent characterCommandHandlerComponent = BDR_Functions_Generic.FindCommandHandler(GetCharacter());
 			//We need the CharacterInputContext for the player
 			CharacterInputContext m_characterInputContext = m_playerCharacterControllerComponent.GetInputContext();
 			float dyingDirection = m_characterInputContext.GetDie();
 			
 			if (dyingDirection != 0.0)
+			{
 				characterCommandHandlerComponent.StartCommand_Death(dyingDirection);
+
+				
+				//SCR_RespawnHandlerComponent tempRespawnHandler = SCR_RespawnHandlerComponent.Cast(GetGame().GetGameMode().FindComponent(SCR_RespawnHandlerComponent));
+				//BaseLoadoutManagerComponent m_LoadoutManager = BaseLoadoutManagerComponent.Cast(GetCharacter().FindComponent(BaseLoadoutManagerComponent));
+				//SCR_LoadoutManager loadoutManager = GetGame().GetLoadoutManager();
+				
+				//loadoutManager.GetPlayerLoadouts();
+				
+				
+				//Print(tempRespawnHandler.CanPlayerSpawn(m_playerController.GetPlayerId()));
+				
+				//SCR_RespawnSystemComponent respawnSystem = tempRespawnHandler.GetGameMode().GetRespawnSystemComponent();
+				//respawnSystem.ForceSpawn(m_playerController.GetPlayerId());
+
+				//needs to call this. 
+				//ref ScriptInvoker invoker = new ScriptInvoker();
+				
+				//invoker.Invoke(GetGame().GetGameMode().OnPlayerKilled, m_playerController.GetPlayerId(), GetCharacter());
+				//GetGame().GetGameMode().OnPlayerKilled(m_playerController.GetPlayerId(), GetCharacter(), null)		//don't care
+			
+			}
+			
+			//characterCommandHandlerComponent.SetSimulationDisabled(true);
 
 		}
 		
@@ -752,7 +730,6 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 	
 	
 	
-
 
 	
 	

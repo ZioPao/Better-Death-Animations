@@ -22,8 +22,7 @@ modded class SCR_CharacterDamageManagerComponent : ScriptedDamageManagerComponen
 		lastHitCoordinates = hitTransform;
 		lastHitZone = pHitZone;
 		lastHitSpeed = speed;
-		
-		UpdateBloodyFace();
+
 	}
 
 	
