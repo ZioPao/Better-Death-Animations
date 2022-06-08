@@ -100,41 +100,33 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 
 		/* Settings initialization stuff */
 		MCF_SettingsManager mcfSettingsManager = MCF_SettingsManager.GetInstance();
-		
 		const string bdrFileNameJson = "BDR_Settings.json";
 		const string BDR_MOD_ID = "596CE5149F3F702A";				//it's probably possible to get this in a better way but ok
+		map<string, ref VariableInfo> variablesMap = new map<string, ref VariableInfo>();
+			
+			
+		variablesMap.Set("defaultMainDamping", new VariableInfo("Default Base Damping", "0.00000001"));
+		variablesMap.Set("defaultSecondaryDamping", new VariableInfo("Default Secondary Damping", "0.1"));
+		variablesMap.Set("modifiedSecondaryDamping", new VariableInfo("Modified Secondary Damping", "1.0"));
+		variablesMap.Set("modifiedSecondaryDampingWhileMoving", new VariableInfo("Modified Secondary Damping While Moving", "0.75"));
+		variablesMap.Set("modifiedMassFastDeath", new VariableInfo("Modified Mass with headshots", "0.297619"));
+		variablesMap.Set("activateHitImpact", new VariableInfo("Activate Physical Hit on Impact", "1"));		
+		
 		
 		
 		if (!mcfSettingsManager.GetJsonManager(BDR_MOD_ID))
 		{
 			
 			Print("BDR: Preparing MCF");
-			map<string, string> mapDefaultValues = new map<string, string>();
-			mapDefaultValues.Set("defaultMainDamping", "0.00000001");
-			mapDefaultValues.Set("defaultSecondaryDamping", "0.1");
-			mapDefaultValues.Set("modifiedSecondaryDamping", "1.0");
-			mapDefaultValues.Set("modifiedSecondaryDampingWhileMoving","0.75");
-			mapDefaultValues.Set("modifiedMassFastDeath", "0.297619");
-			mapDefaultValues.Set("activateHitImpact", "1");		//why tf this goes first?
-			
-			//todo currently bugged in MCF, need to manage it manually.
-			array<string> userFriendlyNames = { "Activate hit on impact", "Minimal Base Damping", "Modified Base Damping", "Modified Secondary Damping", "Modified Secondary Damping While Moving", "Modified Mass with Headshots"};
-			
-			/* Setup linking variables */
-			bdrSettings = mcfSettingsManager.Setup(BDR_MOD_ID, bdrFileNameJson, mapDefaultValues, userFriendlyNames);
-			mcfSettingsManager.AddJsonManager(BDR_MOD_ID, mcfJson);
-			Print("BDR: Added JSON Manager");
+			bdrSettings = mcfSettingsManager.Setup(BDR_MOD_ID, bdrFileNameJson, variablesMap);
 		}
 		else if (!bdrSettings)
 		{
 			Print("BDR: Loading settings");
 			bdrSettings = mcfSettingsManager.GetModSettings(BDR_MOD_ID);
-			
-		
+			mcfSettingsManager.GetJsonManager(BDR_MOD_ID).SetupUserFriendlyVariableNames(variablesMap);		//slow and inefficient but it works for now
 		}
-		
 
-		
 		
 		defaultMainDamping = bdrSettings.Get("defaultMainDamping").ToFloat();
 		defaultSecondaryDamping = bdrSettings.Get("defaultSecondaryDamping").ToFloat();
@@ -142,11 +134,10 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 		modifiedSecondaryDamping = bdrSettings.Get("modifiedSecondaryDampingWhileMoving").ToFloat();
 		modifiedMassFastDeath = bdrSettings.Get("modifiedMassFastDeath").ToFloat();
 		activateHitImpact = bdrSettings.Get("activateHitImpact").ToInt();
-		
 		Print("BDR: Loaded Settings");
 		
-		Rpc(RpcAsk_MainMethod);
 		
+		Rpc(RpcAsk_MainMethod);
 		super.OnDeath(instigator);
 
 		
