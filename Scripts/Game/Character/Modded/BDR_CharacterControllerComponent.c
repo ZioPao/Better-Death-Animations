@@ -96,13 +96,13 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 
 	override void OnDeath(IEntity instigator)
 	{
-		Print("BDR: OnDeath");
+		//Print("BDR: OnDeath");
 
 		/* Settings initialization stuff */
 		MCF_SettingsManager mcfSettingsManager = MCF_SettingsManager.GetInstance();
 		const string bdrFileNameJson = "BDR_Settings.json";
 		const string BDR_MOD_ID = "596CE5149F3F702A";				//it's probably possible to get this in a better way but ok
-		map<string, ref VariableInfo> variablesMap = new map<string, ref VariableInfo>();
+		OrderedVariablesMap variablesMap = new OrderedVariablesMap();
 			
 			
 		variablesMap.Set("defaultMainDamping", new VariableInfo("Default Base Damping", "0.00000001"));
@@ -116,15 +116,18 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 		
 		if (!mcfSettingsManager.GetJsonManager(BDR_MOD_ID))
 		{
-			
+			#ifdef DEBUG_MCF
 			Print("BDR: Preparing MCF");
+			#endif
 			bdrSettings = mcfSettingsManager.Setup(BDR_MOD_ID, bdrFileNameJson, variablesMap);
 		}
 		else if (!bdrSettings)
 		{
+			#ifdef DEBUG_MCF
 			Print("BDR: Loading settings");
+			#endif
 			bdrSettings = mcfSettingsManager.GetModSettings(BDR_MOD_ID);
-			mcfSettingsManager.GetJsonManager(BDR_MOD_ID).SetupUserFriendlyVariableNames(variablesMap);		//slow and inefficient but it works for now
+			mcfSettingsManager.GetJsonManager(BDR_MOD_ID).SetUserHelpers(variablesMap);		//slow and inefficient but it works for now
 		}
 
 		
@@ -134,8 +137,9 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 		modifiedSecondaryDamping = bdrSettings.Get("modifiedSecondaryDampingWhileMoving").ToFloat();
 		modifiedMassFastDeath = bdrSettings.Get("modifiedMassFastDeath").ToFloat();
 		activateHitImpact = bdrSettings.Get("activateHitImpact").ToInt();
+		#ifdef DEBUG_MCF
 		Print("BDR: Loaded Settings");
-		
+		#endif
 		
 		Rpc(RpcAsk_MainMethod);
 		super.OnDeath(instigator);
@@ -681,38 +685,29 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 		}
 		else
 		{
-			m_characterControllerComponent.ForceDeath();
+			//BaseContainer baseContainer = GetComponentSource(GetOwner());
+			
+			//float currentDeathTimer = 20;
+			//while (currentDeathTimer > 15)
+			//{
+			//	baseContainer.Set("DeathTimer", 2.0);
+			//	baseContainer.Set("DeathTimer", 2.0);
+			//	baseContainer.Set("DeathTimer", 2.0);
+			//	baseContainer.Get("DeathTimer", currentDeathTimer);
+			//	Print(currentDeathTimer);
+
+		//	}
+
+			
+			m_playerCharacterControllerComponent.ForceDeath();
 			SCR_CharacterCommandHandlerComponent characterCommandHandlerComponent = BDR_Functions_Generic.FindCommandHandler(GetCharacter());
-			//We need the CharacterInputContext for the player
 			CharacterInputContext m_characterInputContext = m_playerCharacterControllerComponent.GetInputContext();
 			float dyingDirection = m_characterInputContext.GetDie();
-			
+				
 			if (dyingDirection != 0.0)
-			{
 				characterCommandHandlerComponent.StartCommand_Death(dyingDirection);
-
-				
-				//SCR_RespawnHandlerComponent tempRespawnHandler = SCR_RespawnHandlerComponent.Cast(GetGame().GetGameMode().FindComponent(SCR_RespawnHandlerComponent));
-				//BaseLoadoutManagerComponent m_LoadoutManager = BaseLoadoutManagerComponent.Cast(GetCharacter().FindComponent(BaseLoadoutManagerComponent));
-				//SCR_LoadoutManager loadoutManager = GetGame().GetLoadoutManager();
-				
-				//loadoutManager.GetPlayerLoadouts();
-				
-				
-				//Print(tempRespawnHandler.CanPlayerSpawn(m_playerController.GetPlayerId()));
-				
-				//SCR_RespawnSystemComponent respawnSystem = tempRespawnHandler.GetGameMode().GetRespawnSystemComponent();
-				//respawnSystem.ForceSpawn(m_playerController.GetPlayerId());
-
-				//needs to call this. 
-				//ref ScriptInvoker invoker = new ScriptInvoker();
-				
-				//invoker.Invoke(GetGame().GetGameMode().OnPlayerKilled, m_playerController.GetPlayerId(), GetCharacter());
-				//GetGame().GetGameMode().OnPlayerKilled(m_playerController.GetPlayerId(), GetCharacter(), null)		//don't care
 			
-			}
-			
-			//characterCommandHandlerComponent.SetSimulationDisabled(true);
+
 
 		}
 		
