@@ -1,0 +1,17 @@
+$grp SCR_AIGroup : "{84E5BBAB25EA23E5}Prefabs/Groups/BLUFOR/Group_US_FireTeam.et" {
+ {
+  coords 9773.973 197.869 3793.798
+ }
+ {
+  coords 9775.428 201.629 3780.777
+ }
+ {
+  coords 9777.738 202.536 3777.905
+ }
+ {
+  coords 9776.231 201.229 3780.894
+ }
+ {
+  coords 9775.745 200.049 3782.703
+ }
+}

@@ -79,6 +79,12 @@ class BDR_Functions_Generic
 	
 	
 	
+	
+	
+	
+	
+	
+	
 }
 
 
@@ -134,23 +140,4 @@ enum CharacterBones{
 	RFOOT,		//11
 	LFOOT		//12
 }
-
-class BDR_Dismemberment
-{
-
-		
-	
-	void HeadDismemberment()
-	{
-				
-			
-			// We can use this for head dismemberment... not sure about other stuff
-			//CharacterIdentityComponent identity = CharacterIdentityComponent.Cast(GetCharacter().FindComponent(CharacterIdentityComponent));
-			//identity.SetCovered(hitZoneName, false);
-	}
-	
-	
-	
-}
-
 
