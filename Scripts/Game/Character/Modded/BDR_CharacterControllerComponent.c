@@ -105,12 +105,12 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 		OrderedVariablesMap variablesMap = new OrderedVariablesMap();
 			
 			
-		variablesMap.Set("defaultMainDamping", new VariableInfo("Default Base Damping", "0.00000001"));
-		variablesMap.Set("defaultSecondaryDamping", new VariableInfo("Default Secondary Damping", "0.1"));
-		variablesMap.Set("modifiedSecondaryDamping", new VariableInfo("Modified Secondary Damping", "1.0"));
-		variablesMap.Set("modifiedSecondaryDampingWhileMoving", new VariableInfo("Modified Secondary Damping While Moving", "0.75"));
-		variablesMap.Set("modifiedMassFastDeath", new VariableInfo("Modified Mass with headshots", "0.297619"));
-		variablesMap.Set("activateHitImpact", new VariableInfo("Activate Physical Hit on Impact", "1"));		
+		variablesMap.Set("defaultMainDamping", new VariableInfo("Default Base Damping", "0.00000001", EFilterType.TYPE_FLOAT));
+		variablesMap.Set("defaultSecondaryDamping", new VariableInfo("Default Secondary Damping", "0.1", EFilterType.TYPE_FLOAT));
+		variablesMap.Set("modifiedSecondaryDamping", new VariableInfo("Modified Secondary Damping", "1.0", EFilterType.TYPE_FLOAT));
+		variablesMap.Set("modifiedSecondaryDampingWhileMoving", new VariableInfo("Modified Secondary Damping While Moving", "0.75", EFilterType.TYPE_FLOAT));
+		variablesMap.Set("modifiedMassFastDeath", new VariableInfo("Modified Mass with headshots", "0.297619", EFilterType.TYPE_FLOAT));
+		variablesMap.Set("activateHitImpact", new VariableInfo("Activate Physical Hit on Impact", "1", EFilterType.TYPE_BOOL));		
 		
 		
 		
