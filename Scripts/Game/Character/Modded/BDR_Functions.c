@@ -20,15 +20,19 @@ class BDR_Functions_Generic
 	//__________________________________________________________________ 
 	
 	/* Specific functions dedicated to ragdolls*/
-	static PhysicsRagdoll RegenPhysicsRagdoll(ChimeraCharacter character)
+	static PhysicsRagdoll RegenPhysicsRagdoll(ChimeraCharacter character, bool ragdollCollisions)
 	{
 		// Get original ragdoll and destroy it
 		PhysicsRagdoll.GetRagdoll(character).Destroy(1);
 			
 		// Recreate it
 			
-		int tempPhysicsLayerDefsProjectile = 3;		//this is a bug currently, EPhysicsLayerDefs.Projectile doesn't correspond to a real enum, so the layer mask won't work.
-		PhysicsRagdoll.CreateRagdoll(character, "{5DD1A0EBAD2116CB}Prefabs/Characters/Core/character_modded.ragdoll", 1, 3 | EPhysicsLayerDefs.Weapon |EPhysicsLayerDefs.Ragdoll |  EPhysicsLayerDefs.Character | EPhysicsLayerDefs.Vehicle);
+		//int layerMask = 3 | EPhysicsLayerDefs.Weapon |EPhysicsLayerDefs.Ragdoll |  EPhysicsLayerDefs.Character;
+		int layerMask = EPhysicsLayerDefs.Ragdoll;
+		if (ragdollCollisions)
+			layerMask =  EPhysicsLayerDefs.Character;
+		
+		PhysicsRagdoll.CreateRagdoll(character, "{5DD1A0EBAD2116CB}Prefabs/Characters/Core/character_modded.ragdoll", 1, layerMask);
 		//PhysicsRagdoll.CreateRagdoll(character, "{E80E7FF9A6480F9C}Prefabs/Characters/Core/character_modded_encircle_2.ragdoll", 1, 3 | EPhysicsLayerDefs.Weapon |EPhysicsLayerDefs.Ragdoll |  EPhysicsLayerDefs.Character | EPhysicsLayerDefs.Vehicle);
 		//PhysicsRagdoll.CreateRagdoll(GetCharacter(), "{BDAFE20F95BD19F0}Prefabs/Characters/Core/character_modded_encircle.ragdoll", 1, EPhysicsLayerDefs.Ragdoll);
 		

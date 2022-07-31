@@ -4,10 +4,7 @@
 
 //todo list 
 /* 
-- Interpolation between movement speed and impact speed, maybe clean it up a little
-- Better check for terrain, it doesn't work well when a char is on a prefab (like stairs or inside a building)
 - More cleaning 
-
 - Consider prone units 
 - Add a check for "falling" units. Could cause those goddamn legs in the ground
 - performacne stuff you cock
@@ -52,7 +49,7 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 	float modifiedMassFastDeath;
 	
 	bool activateHitImpact;
-	
+	bool activateRagdollCollisions;
 	
 
 	
@@ -97,9 +94,9 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 	override void OnDeath(IEntity instigator)
 	{
 		//Print("BDR: OnDeath");
+		super.OnDeath(instigator);
 
 		/* Settings initialization stuff */
-		MCF_SettingsManager mcfSettingsManager = MCF_SettingsManager.GetInstance();
 		const string bdrFileNameJson = "BDR_Settings.json";
 		const string BDR_MOD_ID = "596CE5149F3F702A";				//it's probably possible to get this in a better way but ok
 		OrderedVariablesMap variablesMap = new OrderedVariablesMap();
@@ -110,24 +107,27 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 		variablesMap.Set("modifiedSecondaryDamping", new VariableInfo("Modified Secondary Damping", "1.0", EFilterType.TYPE_FLOAT));
 		variablesMap.Set("modifiedSecondaryDampingWhileMoving", new VariableInfo("Modified Secondary Damping While Moving", "0.75", EFilterType.TYPE_FLOAT));
 		variablesMap.Set("modifiedMassFastDeath", new VariableInfo("Modified Mass with headshots", "0.297619", EFilterType.TYPE_FLOAT));
+		
 		variablesMap.Set("activateHitImpact", new VariableInfo("Activate Physical Hit on Impact", "1", EFilterType.TYPE_BOOL));		
+		variablesMap.Set("activateRagdollCollisions", new VariableInfo("Activate Collisions with characters and vehicles", "1", EFilterType.TYPE_BOOL));		
+
 		
 		
 		
-		if (!mcfSettingsManager.GetJsonManager(BDR_MOD_ID))
+		if (!MCF_SettingsManager.GetJsonManager(BDR_MOD_ID))
 		{
 			#ifdef DEBUG_MCF
 			Print("BDR: Preparing MCF");
 			#endif
-			bdrSettings = mcfSettingsManager.Setup(BDR_MOD_ID, bdrFileNameJson, variablesMap);
+			MCF_SettingsManager.Setup(BDR_MOD_ID, bdrFileNameJson, variablesMap);
 		}
 		else if (!bdrSettings)
 		{
 			#ifdef DEBUG_MCF
 			Print("BDR: Loading settings");
 			#endif
-			bdrSettings = mcfSettingsManager.GetModSettings(BDR_MOD_ID);
-			mcfSettingsManager.GetJsonManager(BDR_MOD_ID).SetUserHelpers(variablesMap);		//slow and inefficient but it works for now
+			bdrSettings = MCF_SettingsManager.GetModSettings(BDR_MOD_ID);
+			MCF_SettingsManager.GetJsonManager(BDR_MOD_ID).SetUserHelpers(variablesMap);		//slow and inefficient but it works for now
 		}
 
 		
@@ -137,12 +137,12 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 		modifiedSecondaryDamping = bdrSettings.Get("modifiedSecondaryDampingWhileMoving").ToFloat();
 		modifiedMassFastDeath = bdrSettings.Get("modifiedMassFastDeath").ToFloat();
 		activateHitImpact = bdrSettings.Get("activateHitImpact").ToInt();
+		activateRagdollCollisions = bdrSettings.Get("activateRagdollCollisions").ToInt();
 		#ifdef DEBUG_MCF
 		Print("BDR: Loaded Settings");
 		#endif
 		
 		Rpc(RpcAsk_MainMethod);
-		super.OnDeath(instigator);
 
 		
 	}
@@ -429,6 +429,8 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 		if (playerIds.Count() > 1)
 			Rpc(RpcAsk_BroadcastMethod);
 		else
+			GetGame().GetCallqueue().CallLater(ManageRagdoll, 10, true);		
+
 			ManageRagdoll();
 		//ManageRagdoll();
 
@@ -467,11 +469,27 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 		// how the fuck do we check if it's auth or not 
 		 
 		CharacterControllerComponent m_playerCharacterControllerComponent = CharacterControllerComponent.Cast(m_playerController.GetControlledEntity().FindComponent(CharacterControllerComponent));
+		
 
 		
 		// Players won't receive it for various reasons. At least for now.
 		if (m_playerCharacterControllerComponent != m_characterControllerComponent)
 		{
+			
+			
+			//Forcefully eject the character so we don't have strange behaviours 
+			ChimeraCharacter chimeraChar = m_characterControllerComponent.GetCharacter();
+			
+			if (chimeraChar.IsInVehicle())
+			{
+				return;
+
+				
+				
+			}
+
+
+			
 
 			// Get Last Hit
 			
@@ -610,7 +628,7 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 			
 			
 			/* Manages the ragdoll stuff, gravity, forces, etc. */
-			currentRagdoll = BDR_Functions_Generic.RegenPhysicsRagdoll(GetCharacter());
+			currentRagdoll = BDR_Functions_Generic.RegenPhysicsRagdoll(GetCharacter(), activateRagdollCollisions);
 			m_characterControllerComponent.Ragdoll();
 			
 			
@@ -681,7 +699,7 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 			#endif
 			
 			
-
+			
 		}
 		else
 		{
@@ -710,6 +728,10 @@ modded class SCR_CharacterControllerComponent : CharacterControllerComponent{
 
 
 		}
+		
+		Print("Removing ManageRagdoll");
+		
+		GetGame().GetCallqueue().Remove(ManageRagdoll);
 		
 		
 	}
